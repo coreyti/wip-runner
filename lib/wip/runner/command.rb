@@ -89,7 +89,7 @@ module WIP
       private
 
       def delegate(command, argv)
-        target = Commands.locate([self.class], command).new(@io)
+        target = Commands.locate(command, self.class).new(@io)
         target.run(argv)
       end
 

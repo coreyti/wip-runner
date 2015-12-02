@@ -36,7 +36,7 @@ module WIP
           @config.help        = false
           @config.no_validate = false
 
-          parser.banner = "Usage: wip-runner #{heading}"
+          parser.banner = "Usage: #{WIP::Runner::CLI.signature} #{heading}"
 
           section(parser, 'Commands:', commands)
           section(parser, 'Arguments:', arguments)

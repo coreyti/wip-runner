@@ -3,9 +3,27 @@ require 'highline'
 module WIP
   module Runner
     class CLI
+      class << self
+        def signature=(value)
+          @signature = value
+        end
+
+        def signature
+          @signature || 'wip-runner'
+        end
+
+        def namespace=(value)
+          @namespace = value
+        end
+
+        def namespace
+          @namespace || WIP::Runner
+        end
+      end
+
       def initialize(io = HighLine.new)
         @io     = io
-        @parser = Parser.new(io, namespaces)
+        @parser = Parser.new(io)
 
         trap('INT')  { quit }
         trap('TERM') { quit }
@@ -24,23 +42,16 @@ module WIP
         @parser.help
       end
 
-      protected
-
-      def namespaces
-        [WIP::Runner::Commands, WIP::Runner::CLI]
-      end
-
       private
 
       def command(args)
-        handler = Commands.locate(namespaces, args.shift)
+        handler = Commands.locate(args.shift)
         handler.nil? ? nil : handler.new(@io)
       end
 
       class Parser
-        def initialize(io, namespaces)
-          @io         = io
-          @namespaces = namespaces
+        def initialize(io)
+          @io = io
         end
 
         def run(args)
@@ -56,7 +67,7 @@ module WIP
 
         def options
           @options ||= OptionParser.new do |parser|
-            parser.banner = 'Usage: wip-runner <command> [options]'
+            parser.banner = "Usage: #{WIP::Runner::CLI.signature} <command> [options]"
 
             parser.separator ''
             parser.separator 'Commands:'
@@ -89,20 +100,16 @@ module WIP
 
         # ---
 
+        def namespace
+          WIP::Runner::CLI.namespace
+        end
+
         def implicit
-          @implicit ||= if @namespaces.length > 1
-            Commands.within(@namespaces[-1])
-          else
-            []
-          end
+          @implicit ||= Commands.within(WIP::Runner::Commands.implicit)
         end
 
         def explicit
-          @explicit ||= if @namespaces.length > 1
-            @namespaces[0..-2].collect { |ns| Commands.within(ns) }.flatten
-          else
-            Commands.within(@namespaces[0])
-          end
+          @explicit ||= Commands.within(WIP::Runner::Commands.explicit)
         end
       end
     end

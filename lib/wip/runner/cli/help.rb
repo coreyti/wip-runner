@@ -14,19 +14,13 @@ module WIP
         true
       end
 
-      protected
-
-      def namespaces
-        [WIP::Runner::Commands, WIP::Runner::CLI]
-      end
-
       private
 
       def command_parser(params)
-        command = params.command
-        return CLI::Parser.new(@io, namespaces) if command.nil?
+        command    = params.command
+        return CLI::Parser.new(@io) if command.nil?
 
-        Commands.locate(namespaces, command).new(@io).parser
+        Commands.locate(command).new(@io).parser
       end
     end
   end

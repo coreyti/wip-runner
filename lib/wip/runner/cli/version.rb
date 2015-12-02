@@ -4,7 +4,7 @@ module WIP
       overview 'Prints version information'
 
       def execute(params, options)
-        @io.say "wip-runner version #{WIP::Runner::VERSION}"
+        @io.say "#{WIP::Runner::CLI.signature} version #{WIP::Runner::CLI.namespace::VERSION}"
       end
     end
   end
