@@ -1,8 +1,7 @@
-# Wip::Runner
+# wip-runner...
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/wip/runner`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+- A generic CLI (loads context-based commands)
+- A library for building such commands
 
 ## Installation
 
@@ -20,9 +19,15 @@ Or install it yourself as:
 
     $ gem install wip-runner
 
-## Usage
+## Usage as CLI
 
-TODO: Write usage instructions here
+``` bash
+wip-runner help
+```
+
+## Usage as Library
+
+TODO
 
 ## Development
 
@@ -32,10 +37,9 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/wip-runner. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/[coreyti]/wip-runner. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
