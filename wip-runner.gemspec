@@ -5,7 +5,7 @@ require 'wip/runner/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "wip-runner"
-  spec.version       = Wip::Runner::VERSION
+  spec.version       = WIP::Runner::VERSION
   spec.authors       = ["Corey Innis"]
   spec.email         = ["corey@coolerator.net"]
 

@@ -1,6 +1,6 @@
 require "wip/runner/version"
 
-module Wip
+module WIP
   module Runner
     # Your code goes here...
   end
