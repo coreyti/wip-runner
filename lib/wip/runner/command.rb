@@ -61,7 +61,8 @@ module WIP
             validate!(arguments)
             execute(arguments, options)
           else
-            delegate(command, argv)
+            # TODO: add a spec for the help path.
+            command.match(/^-/) ? parser.help : delegate(command, argv)
           end
         end
       rescue OptionParser::InvalidOption, InvalidArguments, InvalidCommand => e

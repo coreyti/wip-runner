@@ -4,6 +4,16 @@ module WIP
   module Runner
     class CLI
       class << self
+        def allow(path, search)
+          search.each do |dir|
+            extension = File.join(dir, path)
+            if File.exist?("#{extension}.rb")
+              $:.push(File.join(extension, 'lib'))
+              require extension
+            end
+          end
+        end
+
         def signature=(value)
           @signature = value
         end
