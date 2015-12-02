@@ -1,3 +1,4 @@
 #!/usr/bin/env ruby
 
 require "wip/runner"
+WIP::Runner::CLI.new.run(ARGV)
