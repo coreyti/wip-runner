@@ -9,6 +9,8 @@ module WIP
           attr_reader :prompts
 
           def initialize(*)
+            @name    = 'script'
+            @args    = []
             @prompts = []
             super
           end
@@ -22,14 +24,26 @@ module WIP
             prompts.empty? ? simplex!(io, env, &block) : complex!(io, env, &block)
           end
 
+          def name(value)
+            @name = value
+          end
+
+          def args(array)
+            @args = array
+          end
+
           def prompt(term, options = {})
-            @prompts << [term, options]      # Prompt.new(...)
+            @prompts << [term, options] # Prompt.new(...)
           end
 
           private
 
+          def arguments
+            ([@name] + @args).join(' ')
+          end
+
           def simplex!(io, env, &block)
-            Open3.popen2e(env, executable) do |stdin, stdoe, thread|
+            Open3.popen2e(env, "#{executable} #{arguments}") do |stdin, stdoe, thread|
               while line = stdoe.gets
                 block.call(line)
               end
@@ -39,7 +53,7 @@ module WIP
           end
 
           def complex!(io, env, &block)
-            Open3.popen2e(env, executable) do |stdin, stdoe, thread|
+            Open3.popen2e(env, "#{executable} #{arguments}") do |stdin, stdoe, thread|
               prompts.each do |term, options|
                 stdoe.expect(term) do |result|
                   stdin.puts io.ask(term) do |q|
