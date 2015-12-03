@@ -17,7 +17,13 @@ module WIP
           @arguments = arguments
           @options   = options
 
-          @io.indent do
+          if markdown?
+            @io.indent do
+              @tasks.each do |task|
+                evaluate(task)
+              end
+            end
+          else
             @tasks.each do |task|
               evaluate(task)
             end
@@ -41,8 +47,8 @@ module WIP
 
           task.shells.each do |shell|
             section("Shell #{shell.type.downcase}") do
-              @io.newline
               send(:"#{prefix}_shell", shell)
+              @io.newline
             end
           end
 
@@ -108,8 +114,20 @@ module WIP
         # ---
 
         def section(heading, &block)
-          @io.say "- [ ] #{heading}..."
-          @io.indent(&block)
+          if markdown?
+            @io.say "- [ ] #{heading}..."
+            @io.indent(&block)
+          else
+            yield
+          end
+        end
+
+        def format
+          @options.format ? @options.format.intern : :text
+        end
+
+        def markdown?
+          format == :markdown
         end
 
         # $ wip-runner x --format=markdown

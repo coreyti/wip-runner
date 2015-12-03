@@ -15,9 +15,13 @@ module WIP
             super
           end
 
-          def description
-            @description ||= "```\n#{@content}\n```"
-            # @description ||= @content
+          def description(format = :text)
+            case format
+            when :markdown
+              "```\n#{@content}\n```"
+            else
+              @content
+            end
           end
 
           def execute(io, env, &block)

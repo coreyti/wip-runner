@@ -11,6 +11,7 @@ require 'wip/runner/cli/version'
 require 'wip/runner/shell'
 require 'wip/runner/workflow'
 require 'wip/runner/commands'
+require 'wip/runner/renderers'
 
 module WIP
   module Runner ; end
