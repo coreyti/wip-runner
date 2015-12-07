@@ -63,7 +63,7 @@ module WIP::Runner
           it 'prints help' do
             expect { command.run(['A']) }.to show %(
               Invalid arguments:
-                - arg_02 ... (missing)
+                  - arg_02 ... (missing)
 
               Usage: wip-runner with-arguments <arguments> [options]
 

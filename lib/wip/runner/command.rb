@@ -51,21 +51,25 @@ module WIP
       end
 
       def run(argv = [])
-        parser.run(argv) do |command, arguments, options|
-          if command.nil?
-            if options.help
-              parser.help
-              return
-            end
+        begin
+          parser.run(argv) do |command, arguments, options|
+            if command.nil?
+              if options.help
+                parser.help
+                return
+              end
 
-            validate!(arguments)
-            execute(arguments, options)
-          else
-            # TODO: add a spec for the help path.
-            command.match(/^-/) ? parser.help : delegate(command, argv)
+              validate!(arguments)
+              execute(arguments, options)
+            else
+              # TODO: add a spec for the help path.
+              command.match(/^-/) ? parser.help : delegate(command, argv)
+            end
           end
+        rescue OptionParser::InvalidOption => e
+          raise InvalidOption, e.args.join(' ')
         end
-      rescue OptionParser::InvalidOption, InvalidArguments, InvalidCommand => e
+      rescue InvalidArgument, InvalidArguments, InvalidCommand, InvalidOption, InvalidOptions => e
         print_error(e)
       end
 
@@ -77,13 +81,11 @@ module WIP
 
       def validate!(arguments)
         unless parser.arguments.empty? || parser.config.no_validate
-          if parser.arguments.keys.any? { |key| arguments[key].nil? }
-            lines = []
-            arguments.each_pair do |key, value|
-              lines << "  - #{key} ... (missing)" if value.nil?
-            end
-            raise InvalidArguments, %Q{\n#{lines.join("\n")}}
+          missing = parser.arguments.keys.inject({}) do |memo, key|
+            memo[key] = nil if arguments[key].nil?
+            memo
           end
+          raise InvalidArguments, missing unless missing.empty?
         end
       end
 
@@ -95,7 +97,7 @@ module WIP
       end
 
       def print_error(e)
-        @io.say(e.message.capitalize)
+        @io.say(e.message)
         @io.newline
         parser.help
       end

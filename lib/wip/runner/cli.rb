@@ -10,6 +10,8 @@ module WIP
             if File.exist?("#{extension}.rb")
               $:.push(File.join(extension, 'lib'))
               require extension
+
+              templates(File.join(extension, 'templates'))
             end
           end
         end
@@ -29,6 +31,14 @@ module WIP
         def namespace
           @namespace || WIP::Runner
         end
+
+        def templates(*paths)
+          @templates ||= []
+          unless paths.empty?
+            @templates = (@templates + paths.flatten).uniq
+          end
+          @templates
+        end
       end
 
       def initialize(io = HighLine.new)
@@ -43,7 +53,8 @@ module WIP
         exit
       end
 
-      def run(args = [])
+      def run(argv = [])
+        args      = argv.dup
         recipient = (command(args) || @parser)
         recipient.run(args)
       rescue InvalidCommand => e

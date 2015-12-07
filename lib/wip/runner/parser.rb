@@ -1,3 +1,5 @@
+require 'wip/runner/parser/option_parser'
+
 module WIP
   module Runner
     class Parser
@@ -12,7 +14,7 @@ module WIP
       def run(argv)
         unless commands.empty?
           command = argv.shift
-          raise InvalidCommand, '(missing)' if command.nil?
+          raise InvalidCommand if command.nil?
           yield(command, nil, nil)
         else
           remaining = options.parse!(argv)
@@ -82,9 +84,10 @@ module WIP
           parser.separator ''
           parser.separator heading
 
-          pairs.each do |name, details|
-            padding = ' ' * (parser.summary_width - name.length + 1)
-            parser.separator [parser.summary_indent, name, padding, details[:overview]].join('')
+          pairs.each do |name, definition|
+            padding   = ' ' * (parser.summary_width - name.length + 1)
+            overview  = definition[:overview]
+            parser.separator [parser.summary_indent, name, padding, overview].join('')
           end
         end
       end
