@@ -1,3 +1,5 @@
+require 'optparse'
+
 module WIP
   module Runner
     class Parser
