@@ -1,20 +1,21 @@
 module WIP
   module Runner
     module Renderer
-      # TODO: allow handler configuration/option
-      def render(content, context = {})
-        content = path?(content) ? template(content) : content
-        handler(:ERB, content).render(Context.for(context))
-      end
-
-      def template(path)
-        base_paths = WIP::Runner::CLI.templates
-        base_paths.each do |base|
+      def asset(path)
+        paths = WIP::Runner::CLI.assets
+        paths.each do |base|
           file = File.join("#{base}/#{path}")
           return File.read(file) if File.exist?(file)
         end
 
-        raise WIP::Runner::InvalidArgument, "#{path} not found in:\n#{base_paths.map { |base| "    - #{base}" }.join("\n")}"
+        raise WIP::Runner::InvalidArgument,
+          "#{path} not found in:\n#{paths.map { |base| "    - #{base}" }.join("\n")}"
+      end
+
+      # TODO: allow handler configuration/option
+      def render(content, context = {})
+        content = path?(content) ? asset(content) : content
+        handler(:ERB, content).render(Context.for(context))
       end
 
       private

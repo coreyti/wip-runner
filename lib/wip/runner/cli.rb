@@ -10,8 +10,7 @@ module WIP
             if File.exist?("#{extension}.rb")
               $:.push(File.join(extension, 'lib'))
               require extension
-
-              templates(File.join(extension, 'templates'))
+              assets(File.join(extension, 'assets'))
             end
           end
         end
@@ -32,12 +31,12 @@ module WIP
           @namespace || WIP::Runner
         end
 
-        def templates(*paths)
-          @templates ||= []
+        def assets(*paths)
+          @assets ||= []
           unless paths.empty?
-            @templates = (@templates + paths.flatten).uniq
+            @assets = (@assets + paths.flatten).uniq
           end
-          @templates
+          @assets
         end
       end
 
