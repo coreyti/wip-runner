@@ -2,10 +2,16 @@ module WIP
   module Runner
     module Renderer
       def asset(path)
+        File.read(asset_path(path))
+      end
+
+      def asset_path(path)
+        return File.expand_path(path) if File.exist?(path)
+
         paths = WIP::Runner::CLI.assets
         paths.each do |base|
           file = File.join("#{base}/#{path}")
-          return File.read(file) if File.exist?(file)
+          return file if File.exist?(file)
         end
 
         raise WIP::Runner::InvalidArgument,
@@ -21,7 +27,7 @@ module WIP
       private
 
       def path?(content)
-        File.extname(content).match(/\.[a-z]+$/)
+        (content.match(/\n/) == nil) && (content.match(/^.+\.[a-z]+$/) != nil)
       end
 
       def handler(key, content)

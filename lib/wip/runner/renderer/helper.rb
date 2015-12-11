@@ -1,11 +1,11 @@
 module WIP::Runner::Renderer
   class Helper
     def self.for(context, mod)
-      self.instance_eval { include mod }
-      self.new(context)
+      self.new(context, mod)
     end
 
-    def initialize(context)
+    def initialize(context, mod)
+      self.instance_eval { extend mod }
       @context = context
     end
 

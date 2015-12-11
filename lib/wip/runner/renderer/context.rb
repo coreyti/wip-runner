@@ -1,5 +1,7 @@
 module WIP::Runner::Renderer
   class Context
+    include WIP::Runner::Renderer
+
     class << self
       def for(context = {})
         self.new(context).send(:__binding__)
@@ -18,7 +20,7 @@ module WIP::Runner::Renderer
     private
 
     def __binding__
-      binding
+      binding.taint
     end
   end
 end
