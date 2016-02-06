@@ -1,5 +1,12 @@
 require 'wip/runner/parser/option_parser'
 
+# TODO:
+# - be sure repeated flags are supported: `command --flag A --flag B`
+# - support `arguments` as an Array-like object of all non-flag arguments
+# - support (?) "application options" (preceding args/commands) and "command options"
+#   - options.foo                     ... get any option by name
+#   - options.for_application('foo')  ... get an application option
+#   - options.for_command('foo')      ... get a command option
 module WIP
   module Runner
     class Parser

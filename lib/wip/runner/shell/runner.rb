@@ -1,5 +1,13 @@
 require 'open3'
 
+# TODO:
+# - allow for "sections" within tasks, with formatting options
+# - ...that is, provide a clear way to distinguish setup input/output from
+#   script rendering output and execution output.
+# - run modes:
+#   - execute
+#   - preview/dry-run (would prompt, but not execute)
+#   - non-interactive (no prompts, can be combined with execute or preview)
 module WIP
   module Runner
     module Shell
@@ -36,11 +44,16 @@ module WIP
           task.build(arguments, options)
           prefix = options.preview ? :preview : :execute
 
+          # if task.heading?
+          #   @io.say task.heading
+          #   @io.newline
+          # end
+
           section('Config') do
             # @io.newline
             # @io.say '```'
-            task.configs.each do |term, options|
-              send(:"#{prefix}_config", term, options)
+            task.configs.each do |term, options, block|
+              send(:"#{prefix}_config", term, options, &block)
             end
             # @io.say '```'
           end unless task.configs.empty?
@@ -75,8 +88,13 @@ module WIP
             q.echo     = false  if options[:password]
             q.validate = /^.+$/ if options[:required]
           end
-          @env[term] = answer unless answer.empty?
-          @env[term] ||= ENV[term]
+
+          if block_given?
+            yield answer
+          else
+            @env[term] = answer unless answer.empty?
+            @env[term] ||= ENV[term]
+          end
         end
 
         def execute_shell(shell)
@@ -102,6 +120,7 @@ module WIP
           end
         end
 
+        # TODO: determine where preview_config should still prompt.
         def preview_config(term, options = {})
           message = options[:required] ? "#{term} (*)" : term
           @io.say "- #{message}"
@@ -118,7 +137,11 @@ module WIP
             @io.say "- [ ] #{heading}..."
             @io.indent(&block)
           else
-            yield
+            # @io.indent do
+              @io.say "#{heading}..."
+              yield
+              @io.newline
+            # end
           end
         end
 

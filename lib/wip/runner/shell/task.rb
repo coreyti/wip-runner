@@ -2,13 +2,15 @@ module WIP
   module Runner
     module Shell
       class Task
-        attr_reader :configs, :shells, :children
+        attr_reader :heading, :configs, :shells, :children
 
-        def initialize(command, &block)
+        # TODO: add optional "heading"
+        def initialize(command, *args, &block)
           @command  = command
           @configs  = []
           @shells   = []
           @children = []
+          @heading  = args.first unless args.empty?
           @block    = block
         end
 
@@ -16,16 +18,20 @@ module WIP
           self.instance_exec(arguments, options, &@block) ; self
         end
 
-        def config(term, options = {})
-          @configs << [term.to_s, options] # Config.new(...)
+        def heading?
+          !! @heading
+        end
+
+        def config(term, options = {}, &block)
+          @configs << [term.to_s, options, block] # Config.new(...)
         end
 
         def shell(handler, content, &block)
           shells << Handlers.locate(handler).new(content, &block)
         end
 
-        def task(&block)
-          children << Task.new(@command, &block)
+        def task(*args, &block)
+          children << Task.new(@command, *args, &block)
         end
 
         protected
