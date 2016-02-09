@@ -1,8 +1,8 @@
 module WIP
   module Runner::Spec
     module Helpers::IOHelpers
-      def io
-        @io ||= CustomHighLine.new
+      def ui
+        @ui ||= WIP::Runner::UI.new
       end
 
       def simulate(pairs = nil)
@@ -13,6 +13,8 @@ module WIP
         end
 
         if block_given?
+          io = WIP::Runner::UI.err
+
           begin
             originput = io.instance_variable_get(:@input)
             simulator = Simulator.new(@simulated.values, (@simulated.keys == ['*']))
@@ -42,24 +44,24 @@ module WIP
 
       private
 
-      class CustomHighLine < HighLine
-        # Strips the same-line indicating, trailing space from questions in order
-        # to print the newline in specs (that would come from user input).
-        def ask(question, answer_type = String, &block)
-          super("#{question.rstrip}", answer_type, &block)
-        end
-
-        # Strips double spaces between question and default.
-        def say(statement)
-          # puts statement.to_s.inspect
-          super statement.to_s.gsub(/:\s{2,}\|/, ': |')
-        end
-
-        # Strips formatting for specs.
-        def color(string, *colors)
-          string
-        end
-      end
+      # class CustomHighLine < HighLine
+      #   # Strips the same-line indicating, trailing space from questions in order
+      #   # to print the newline in specs (that would come from user input).
+      #   def ask(question, answer_type = String, &block)
+      #     super("#{question.rstrip}", answer_type, &block)
+      #   end
+      #
+      #   # Strips double spaces between question and default.
+      #   def say(statement)
+      #     # puts statement.to_s.inspect
+      #     super statement.to_s.gsub(/:\s{2,}\|/, ': |')
+      #   end
+      #
+      #   # Strips formatting for specs.
+      #   def color(string, *colors)
+      #     string
+      #   end
+      # end
 
       # adapted from https://gist.github.com/194554
       class Simulator

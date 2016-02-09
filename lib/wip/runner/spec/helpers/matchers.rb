@@ -2,16 +2,16 @@ module WIP
   module Runner::Spec
     module Helpers::Matchers
       def show(expected, options = {})
-        output = options[:output] || :highline
-        match  = options[:match]  || :full # :match => [:full | :partial]
-        ShowMatcher.new(self, strip_heredoc(expected).strip, output, match).send(:"to_#{output}")
+        stream = options[:to]    || :out  # :to    => [:out | :err]
+        match  = options[:match] || :full # :match => [:full | :partial]
+        ShowMatcher.new(self, strip_heredoc(expected).strip, stream, match)
       end
 
       class ShowMatcher < RSpec::Matchers::BuiltIn::Output
-        def initialize(example, expected, output, match)
+        def initialize(example, expected, stream, match)
           super(expected)
           @example = example
-          @output  = output
+          @stream  = stream
           @match   = match
         end
 
@@ -20,13 +20,8 @@ module WIP
           return false unless Proc === block
 
           @expected = @expected.strip
-
-          if @output == :highline
-            @actual = @stream_capturer.capture(@example.io, block)
-            @actual = @example.strip_heredoc(@actual).strip
-          else
-            @actual = @stream_capturer.capture(block).strip
-          end
+          @actual = Capturer.capture(@example.ui, @stream, block)
+          @actual = @example.strip_heredoc(@actual).strip
 
           if @match == :partial
             values_match?(/#{Regexp.escape(@expected)}/, @actual)
@@ -36,7 +31,7 @@ module WIP
         end
 
         def description
-          "#{@stream_capturer.name} to receive the following content (#{@match} match):"
+          "STD#{@stream.upcase} to receive the following content (#{@match} match):"
         end
 
         def failure_message
@@ -49,28 +44,18 @@ module WIP
           ].join("\n\n")
         end
 
-        def to_highline
-          @stream_capturer = CaptureHighline
-          self
-        end
-
         # @private
-        module CaptureHighline
-          def self.name
-            'highline'
-          end
-
-          def self.capture(io, block)
-            captured_stream = StringIO.new
-
-            original_stream = io.instance_variable_get(:'@output')
-            io.instance_variable_set(:'@output', captured_stream)
+        module Capturer
+          def self.capture(ui, stream, block)
+            captured = StringIO.new
+            highline = ui.send(stream)
+            original = highline.instance_variable_get(:'@output')
+            highline.instance_variable_set(:'@output', captured)
 
             block.call
-
-            captured_stream.string
+            captured.string
           ensure
-            io.instance_variable_set(:'@output', captured_stream)
+            highline.instance_variable_set(:'@output', original)
           end
         end
       end

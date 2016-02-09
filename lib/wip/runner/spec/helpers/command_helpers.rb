@@ -59,6 +59,21 @@ module WIP
             @io.say 'running nested command...'
           end
         end
+
+        # class WithTasks < Simple
+        #   def execute(args, options)
+        #
+        #   end
+        #
+        #   def task
+        #     Shell::Task.new(self) do |arguments, options|
+        #       config :VARIABLE
+        #       shell :script, %{
+        #         echo $VARIABLE
+        #       }
+        #     end
+        #   end
+        # end
       end
     end
   end

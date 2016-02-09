@@ -12,8 +12,8 @@ module WIP
     class Parser
       attr_reader :config
 
-      def initialize(io, command)
-        @io      = io
+      def initialize(ui, command)
+        @ui      = ui
         @command = command
         @config  = WIP::Runner::Options.new
       end
@@ -37,7 +37,7 @@ module WIP
       end
 
       def help
-        @io.say(options.help)
+        @ui.say(:err, options.help)
       end
 
       def options

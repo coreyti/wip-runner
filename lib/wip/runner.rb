@@ -3,6 +3,7 @@ require 'wip/runner/errors'
 require 'wip/runner/command'
 require 'wip/runner/options'
 require 'wip/runner/parser'
+require 'wip/runner/ui'
 
 require 'wip/runner/cli'
 require 'wip/runner/cli/help'

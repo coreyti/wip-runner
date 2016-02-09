@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module WIP::Runner
   describe CLI do
-    subject(:cli) { CLI.new(io) }
+    subject(:cli) { CLI.new(ui) }
 
     describe '#run' do
       let(:help) do
@@ -58,7 +58,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
           end
         end
 

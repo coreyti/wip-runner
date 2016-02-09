@@ -1,5 +1,3 @@
-require 'highline'
-
 module WIP
   module Runner
     class CLI
@@ -40,10 +38,9 @@ module WIP
         end
       end
 
-      def initialize(io = HighLine.new)
-        @io     = io
-        @parser = Parser.new(io)
-
+      def initialize(ui = UI.new)
+        @ui     = ui
+        @parser = Parser.new(ui)
         trap('INT')  { quit }
         trap('TERM') { quit }
       end
@@ -57,8 +54,8 @@ module WIP
         recipient = (command(args) || @parser)
         recipient.run(args)
       rescue InvalidCommand => e
-        @io.say(e.message)
-        @io.newline
+        ui.say(:err, e.message)
+        ui.newline(:err)
         @parser.help
       end
 
@@ -66,12 +63,12 @@ module WIP
 
       def command(args)
         handler = Commands.locate(args.shift)
-        handler.nil? ? nil : handler.new(@io)
+        handler.nil? ? nil : handler.new(@ui)
       end
 
       class Parser
-        def initialize(io)
-          @io = io
+        def initialize(ui)
+          @ui = ui
         end
 
         def run(args)
@@ -80,7 +77,7 @@ module WIP
         end
 
         def help
-          @io.say(options.help)
+          @ui.say(:err, options.help)
         end
 
         private
@@ -106,7 +103,7 @@ module WIP
             parser.separator 'Options:'
 
             parser.on_tail '-h', '--help', 'Prints help messages' do
-              @io.say(parser)
+              @ui.say(:err, parser)
             end
           end
         end

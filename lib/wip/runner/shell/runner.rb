@@ -8,18 +8,23 @@ require 'open3'
 #   - execute
 #   - preview/dry-run (would prompt, but not execute)
 #   - non-interactive (no prompts, can be combined with execute or preview)
+# - figure out why "preview" mode works fine, while "execute" mode does not,
+#   when given a script with wrapped lines, as such:
+#   ```
+#   fly exec \
+#     -t production
+#   ```
 module WIP
   module Runner
     module Shell
       class Runner
         attr_reader :arguments, :options
 
-        def initialize(io, tasks, env = {}, &block)
-          @io    = io
+        def initialize(ui, tasks, env = {}, &block)
+          @ui    = ui
           @tasks = [tasks].flatten
           @env   = env
           @proc  = block || default_proc
-          @io.indent_size = 2
         end
 
         def run(arguments, options)
@@ -27,7 +32,7 @@ module WIP
           @options   = options
 
           if markdown?
-            @io.indent do
+            @ui.indent(:out) do
               @tasks.each do |task|
                 evaluate(task)
               end
@@ -42,7 +47,7 @@ module WIP
         private
 
         def default_proc
-          Proc.new { |line| @io.say "> #{line.rstrip}" }
+          Proc.new { |line| ui.say(:out, "> #{line.rstrip}") }
         end
 
         def evaluate(task)
@@ -66,7 +71,7 @@ module WIP
           task.shells.each do |shell|
             section("Shell #{shell.type.downcase}") do
               send(:"#{prefix}_shell", shell)
-              @io.newline
+              @ui.newline(:out)
             end
           end
 
@@ -88,7 +93,7 @@ module WIP
 
         def execute_config(term, options = {})
           query  = options[:required] ? "#{term} (*)" : term
-          answer = @io.ask("- #{query}: ") do |q|
+          answer = @ui.ask(:err, "- #{query}: ") do |q|
             q.default  = (options[:default] || ENV[term]) unless options[:password]
             q.echo     = false  if options[:password]
             q.validate = /^.+$/ if options[:required]
@@ -106,7 +111,7 @@ module WIP
           preview_shell(shell)
 
           if approved?
-            @io.newline
+            @ui.newline(:out)
             # result = shell.execute(@io, @env) do |line|
             #   # @io.say "> `#{line.rstrip}`<br>"
             #   @io.say "> #{line.rstrip}"
@@ -115,38 +120,38 @@ module WIP
             #
             #   # @io.send((action || :say), line)
             # end
-            result = shell.execute(@io, @env, &@proc)
-            @io.newline
+            result = shell.execute(@display, @env, &@proc)
+            @ui.newline(:out)
 
             # TODO: raise instead of exit.
             exit 1 unless result.success?
           else
-            @io.newline
-            @io.say '> (skipped)'
+            @ui.newline(:out)
+            @ui.say(:out, '> (skipped)')
           end
         end
 
         # TODO: determine where preview_config should still prompt.
         def preview_config(term, options = {})
           message = options[:required] ? "#{term} (*)" : term
-          @io.say "- #{message}"
+          @ui.say(:err, "- #{message}")
         end
 
         def preview_shell(shell)
-          @io.say shell.description
+          @ui.say(:out, shell.description)
         end
 
         # ---
 
         def section(heading, &block)
           if markdown?
-            @io.say "- [ ] #{heading}..."
-            @io.indent(&block)
+            @ui.say(:out, "- [ ] #{heading}...")
+            @ui.indent(:out, &block)
           else
             # @io.indent do
-              @io.say "#{heading}..."
+              @ui.say(:out, "#{heading}...")
               yield
-              @io.newline
+              @ui.newline(:out)
             # end
           end
         end
