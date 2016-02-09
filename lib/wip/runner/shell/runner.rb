@@ -14,10 +14,11 @@ module WIP
       class Runner
         attr_reader :arguments, :options
 
-        def initialize(io, tasks, env = {})
+        def initialize(io, tasks, env = {}, &block)
           @io    = io
-          @tasks = tasks
+          @tasks = [tasks].flatten
           @env   = env
+          @proc  = block || default_proc
           @io.indent_size = 2
         end
 
@@ -39,6 +40,10 @@ module WIP
         end
 
         private
+
+        def default_proc
+          Proc.new { |line| @io.say "> #{line.rstrip}" }
+        end
 
         def evaluate(task)
           task.build(arguments, options)
@@ -102,14 +107,15 @@ module WIP
 
           if approved?
             @io.newline
-            result = shell.execute(@io, @env) do |line|
-              # @io.say "> `#{line.rstrip}`<br>"
-              @io.say "> #{line.rstrip}"
-              # puts "#{@io.indentation}> `#{line.rstrip}`  "
-              # @io.instance_variable_get(:@output).puts "> `#{line.rstrip}`  "
-
-              # @io.send((action || :say), line)
-            end
+            # result = shell.execute(@io, @env) do |line|
+            #   # @io.say "> `#{line.rstrip}`<br>"
+            #   @io.say "> #{line.rstrip}"
+            #   # puts "#{@io.indentation}> `#{line.rstrip}`  "
+            #   # @io.instance_variable_get(:@output).puts "> `#{line.rstrip}`  "
+            #
+            #   # @io.send((action || :say), line)
+            # end
+            result = shell.execute(@io, @env, &@proc)
             @io.newline
 
             # TODO: raise instead of exit.
