@@ -16,7 +16,7 @@ module WIP::Runner
 
             Options:
                 -h, --help                       Prints help messages
-          )
+          ), :to => :err
           expect(command).to_not be_executed
         end
       end
@@ -46,7 +46,7 @@ module WIP::Runner
               Options:
                   -f, --flag                       Option 1
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
             expect(command).to_not be_executed
           end
         end
@@ -73,7 +73,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
             expect(command).to_not be_executed
           end
         end
@@ -89,7 +89,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
             expect(command).to_not be_executed
           end
         end
@@ -109,7 +109,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
           end
         end
 
@@ -122,7 +122,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
           end
         end
 
@@ -138,7 +138,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
           end
         end
 
@@ -154,7 +154,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
           end
         end
       end

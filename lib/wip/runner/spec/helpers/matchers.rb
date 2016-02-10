@@ -1,9 +1,10 @@
 module WIP
   module Runner::Spec
     module Helpers::Matchers
+      # TODO: without a :to option, join them.
       def show(expected, options = {})
-        stream = options[:to]    || :out  # :to    => [:out | :err]
-        match  = options[:match] || :full # :match => [:full | :partial]
+        stream = options[:to]    || :combined # :to    => [:out | :err]
+        match  = options[:match] || :full     # :match => [:full | :partial]
         ShowMatcher.new(self, strip_heredoc(expected).strip, stream, match)
       end
 
@@ -48,14 +49,29 @@ module WIP
         module Capturer
           def self.capture(ui, stream, block)
             captured = StringIO.new
-            highline = ui.send(stream)
-            original = highline.instance_variable_get(:'@output')
-            highline.instance_variable_set(:'@output', captured)
+
+            mappings = {}.tap do |h|
+              if stream == :combined
+                out = ui.send(:out)
+                err = ui.send(:err)
+                h[out] = out.instance_variable_get(:'@output')
+                h[err] = err.instance_variable_get(:'@output')
+              else
+                io = ui.send(stream)
+                h[io] = io.instance_variable_get(:'@output')
+              end
+            end
+
+            mappings.each do |io, original|
+              io.instance_variable_set(:'@output', captured)
+            end
 
             block.call
             captured.string
           ensure
-            highline.instance_variable_set(:'@output', original)
+            mappings.each do |io, original|
+              io.instance_variable_set(:'@output', original)
+            end
           end
         end
       end

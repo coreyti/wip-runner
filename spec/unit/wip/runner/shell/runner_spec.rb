@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module WIP::Runner
   describe Shell::Runner do
-    subject(:runner) { Shell::Runner.new(task, {}) }
+    subject(:runner) { Shell::Runner.new(ui, task, {}) }
     let(:options)    { Options.new }
     let(:task) do
       Shell::Task.new(nil) do |arguments, options|
@@ -20,20 +20,31 @@ module WIP::Runner
         )
       end
 
-      it 'writes prompts to STDERR' do
-        expect { simulate { runner.run(nil, options) } }.to show %(
+      context 'when the Task is run in "execute" mode' do
+        it 'writes prompts to STDERR' do
+          expect { simulate { runner.run(nil, options) } }.to show %(
+            Config...
+            - VARIABLE:
 
-        ) #, :output => :stderr
+            Shell script...
+          ), :to => :err
+        end
+
+        it 'writes script output to STDOUT' do
+          simulate(
+            "- VARIABLE: " => 'input'
+          )
+
+          expect { simulate { runner.run(nil, options) } }.to show %(
+            echo $VARIABLE
+
+            > input
+          ), :to => :out
+        end
       end
 
-      it 'writes script output to STDOUT' do
-        simulate(
-          "- VARIABLE: " => 'input'
-        )
-
-        expect { simulate { runner.run(nil, options) } }.to show %(
-          > input
-        )
+      context 'when the Task is run in "preview" mode' do
+        # TODO...
       end
     end
   end

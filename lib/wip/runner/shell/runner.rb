@@ -47,7 +47,7 @@ module WIP
         private
 
         def default_proc
-          Proc.new { |line| ui.say(:out, "> #{line.rstrip}") }
+          Proc.new { |line| @ui.say(:out, "> #{line.rstrip}") }
         end
 
         def evaluate(task)
@@ -71,7 +71,7 @@ module WIP
           task.shells.each do |shell|
             section("Shell #{shell.type.downcase}") do
               send(:"#{prefix}_shell", shell)
-              @ui.newline(:out)
+              # @ui.newline(:err)
             end
           end
 
@@ -149,9 +149,9 @@ module WIP
             @ui.indent(:out, &block)
           else
             # @io.indent do
-              @ui.say(:out, "#{heading}...")
+              @ui.say(:err, "#{heading}...")
               yield
-              @ui.newline(:out)
+              @ui.newline(:err)
             # end
           end
         end

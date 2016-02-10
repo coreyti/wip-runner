@@ -54,8 +54,8 @@ module WIP
         recipient = (command(args) || @parser)
         recipient.run(args)
       rescue InvalidCommand => e
-        ui.say(:err, e.message)
-        ui.newline(:err)
+        @ui.say(:err, e.message)
+        @ui.newline(:err)
         @parser.help
       end
 

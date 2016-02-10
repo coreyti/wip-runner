@@ -20,26 +20,26 @@ module WIP::Runner
 
       context 'given no arguments' do
         it 'prints help' do
-          expect { cli.run }.to show help
+          expect { cli.run }.to show help, :to => :err
         end
       end
 
       context 'given empty arguments' do
         it 'prints help' do
-          expect { cli.run([]) }.to show help
+          expect { cli.run([]) }.to show help, :to => :err
         end
       end
 
       context 'given arguments as "--help"' do
         it 'prints help' do
-          expect { cli.run(['--help']) }.to show help
+          expect { cli.run(['--help']) }.to show help, :to => :err
         end
       end
 
       context 'given command arguments' do
         context 'as "help"' do
           it 'prints help' do
-            expect { cli.run(['help']) }.to show help
+            expect { cli.run(['help']) }.to show help, :to => :err
           end
         end
 
@@ -47,7 +47,7 @@ module WIP::Runner
           it 'executes the command' do
             expect { cli.run(['version']) }.to show %(
               wip-runner version #{WIP::Runner::VERSION}
-            )
+            ), :to => :out
           end
         end
 
@@ -68,7 +68,7 @@ module WIP::Runner
               Invalid command: bogus
 
               Usage: wip-runner <command> [options]
-            ), :match => :partial
+            ), :to => :err, :match => :partial
           end
         end
       end

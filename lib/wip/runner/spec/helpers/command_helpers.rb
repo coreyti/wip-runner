@@ -13,7 +13,7 @@ module WIP
       end
 
       def example_command(implementation)
-        ExampleCommands.const_get(implementation).new(io)
+        ExampleCommands.const_get(implementation).new(ui)
       end
 
       module ExampleCommands
@@ -56,24 +56,9 @@ module WIP
 
           def execute(args, options)
             super
-            @io.say 'running nested command...'
+            @ui.say(:out, 'running nested command...')
           end
         end
-
-        # class WithTasks < Simple
-        #   def execute(args, options)
-        #
-        #   end
-        #
-        #   def task
-        #     Shell::Task.new(self) do |arguments, options|
-        #       config :VARIABLE
-        #       shell :script, %{
-        #         echo $VARIABLE
-        #       }
-        #     end
-        #   end
-        # end
       end
     end
   end

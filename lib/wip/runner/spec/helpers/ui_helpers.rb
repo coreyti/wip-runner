@@ -1,8 +1,8 @@
 module WIP
   module Runner::Spec
-    module Helpers::IOHelpers
+    module Helpers::UIHelpers
       def ui
-        @ui ||= WIP::Runner::UI.new
+        @ui ||= CustomUI.new($stdin, StringIO.new, StringIO.new)
       end
 
       def simulate(pairs = nil)
@@ -13,55 +13,55 @@ module WIP
         end
 
         if block_given?
-          io = WIP::Runner::UI.err
+          highline = ui.send(:err)
 
           begin
-            originput = io.instance_variable_get(:@input)
+            originput = highline.instance_variable_get(:@input)
             simulator = Simulator.new(@simulated.values, (@simulated.keys == ['*']))
-            io.instance_variable_set(:@input, simulator)
+            highline.instance_variable_set(:@input, simulator)
 
             @simulated.keys.each do |question|
               # NOTE: the "|default|" is stripped because that is added
               # later by the Question instance, in time for a call to #say.
               if question.is_a?(Array)
-                expect(io).to receive(:ask)
-                  .with(*question)
+                expect(ui).to receive(:ask)
+                  .with(:err, *question)
                   .and_call_original
               else
                 question = question.sub(/:\s\|.*\Z/, ': ')
-                expect(io).to receive(:ask)
-                  .with(question)
+                expect(ui).to receive(:ask)
+                  .with(:err, question)
                   .and_call_original
               end unless question == '*'
             end
 
             yield
           ensure
-            io.instance_variable_set(:@input, originput)
+            highline.instance_variable_set(:@input, originput)
           end
         end
       end
 
       private
 
-      # class CustomHighLine < HighLine
-      #   # Strips the same-line indicating, trailing space from questions in order
-      #   # to print the newline in specs (that would come from user input).
-      #   def ask(question, answer_type = String, &block)
-      #     super("#{question.rstrip}", answer_type, &block)
-      #   end
-      #
-      #   # Strips double spaces between question and default.
-      #   def say(statement)
-      #     # puts statement.to_s.inspect
-      #     super statement.to_s.gsub(/:\s{2,}\|/, ': |')
-      #   end
-      #
-      #   # Strips formatting for specs.
-      #   def color(string, *colors)
-      #     string
-      #   end
-      # end
+      class CustomUI < WIP::Runner::UI
+        # Strips the same-line indicating, trailing space from questions in order
+        # to print the newline in specs (that would come from user input).
+        def ask(stream, question, answer_type = String, &block)
+          super(stream, "#{question.rstrip}", answer_type, &block)
+        end
+
+        # Strips double spaces between question and default.
+        def say(stream, statement)
+          # puts statement.to_s.inspect
+          super stream, statement.to_s.gsub(/:\s{2,}\|/, ': |')
+        end
+
+        # Strips formatting for specs.
+        def color(stream, string, *colors)
+          string
+        end
+      end
 
       # adapted from https://gist.github.com/194554
       class Simulator

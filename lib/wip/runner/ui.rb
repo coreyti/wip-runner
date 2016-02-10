@@ -15,6 +15,9 @@ module WIP
 
         if [:out, :err].include?(stream)
           send(stream).send(method_name, *args[1..-1], &block)
+        # # NOTE: probably do NOT want this, but it's need for Workflows for now.
+        # elsif out.respond_to?(method_name)
+        #   out.send(method_name, *args[1..-1], &block)
         else
           super
         end
