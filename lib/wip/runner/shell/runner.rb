@@ -1,19 +1,5 @@
 require 'open3'
 
-# TODO:
-# - allow for "sections" within tasks, with formatting options
-# - ...that is, provide a clear way to distinguish setup input/output from
-#   script rendering output and execution output.
-# - run modes:
-#   - execute
-#   - preview/dry-run (would prompt, but not execute)
-#   - non-interactive (no prompts, can be combined with execute or preview)
-# - figure out why "preview" mode works fine, while "execute" mode does not,
-#   when given a script with wrapped lines, as such:
-#   ```
-#   fly exec \
-#     -t production
-#   ```
 module WIP
   module Runner
     module Shell
@@ -60,7 +46,7 @@ module WIP
           # end
 
           section('Config') do
-            # @io.newline
+            # @ui.newline
             # @io.say '```'
             task.configs.each do |term, options, block|
               send(:"#{prefix}_config", term, options, &block)
@@ -108,7 +94,7 @@ module WIP
         end
 
         def execute_shell(shell)
-          preview_shell(shell)
+          preview_shell(shell) unless options.silent
 
           if approved?
             @ui.newline(:out)
@@ -120,14 +106,14 @@ module WIP
             #
             #   # @io.send((action || :say), line)
             # end
-            result = shell.execute(@display, @env, &@proc)
+            result = shell.execute(@ui, @env, &@proc)
             @ui.newline(:out)
 
             # TODO: raise instead of exit.
             exit 1 unless result.success?
           else
-            @ui.newline(:out)
-            @ui.say(:out, '> (skipped)')
+            @ui.newline(:err)
+            @ui.say(:err, '> (skipped)')
           end
         end
 
@@ -149,7 +135,7 @@ module WIP
             @ui.indent(:out, &block)
           else
             # @io.indent do
-              @ui.say(:err, "#{heading}...")
+              # @ui.say(:err, "#{heading}...")
               yield
               @ui.newline(:err)
             # end

@@ -24,8 +24,8 @@ module WIP
             end
           end
 
-          def execute(io, env, &block)
-            prompts.empty? ? simplex!(io, env, &block) : complex!(io, env, &block)
+          def execute(ui, env, &block)
+            prompts.empty? ? simplex!(ui, env, &block) : complex!(ui, env, &block)
           end
 
           def name(value)
@@ -46,7 +46,7 @@ module WIP
             ([@name] + @args).join(' ')
           end
 
-          def simplex!(io, env, &block)
+          def simplex!(ui, env, &block)
             Open3.popen2e(env, "#{executable} #{arguments}") do |stdin, stdoe, thread|
               while line = stdoe.gets
                 block.call(line)
@@ -56,11 +56,11 @@ module WIP
             end
           end
 
-          def complex!(io, env, &block)
+          def complex!(ui, env, &block)
             Open3.popen2e(env, "#{executable} #{arguments}") do |stdin, stdoe, thread|
               prompts.each do |term, options|
                 stdoe.expect(term) do |result|
-                  stdin.puts io.ask(term) do |q|
+                  stdin.puts ui.ask(:err, term) do |q|
                     options.each { |k, v| q.send(:"#{k}=", v) }
                   end
                   stdoe.gets
