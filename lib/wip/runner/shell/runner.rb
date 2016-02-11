@@ -7,6 +7,7 @@ module WIP
         attr_reader :arguments, :options
 
         # TODO: move env and/or block to #run ???
+        # TODO: enforce env keys as String OR Symbol
         def initialize(ui, tasks, env = {}, &block)
           @ui    = ui
           @tasks = [tasks].flatten
@@ -16,9 +17,9 @@ module WIP
 
         def run(arguments, options)
           @arguments = arguments
-          @options   = options
+          @options   = default(:options).merge(options)
 
-          if markdown?
+          if format == :markdown
             @ui.indent(:out) do
               @tasks.each do |task|
                 evaluate(task)
@@ -32,6 +33,18 @@ module WIP
         end
 
         private
+
+        def default(setting)
+          @defaults ||= {
+            :options => Options.new({
+              :interactive => true,
+              :format      => :text,
+              :mode        => :execute
+            })
+          }
+
+          @defaults[setting]
+        end
 
         # :p
         def default_proc
@@ -99,6 +112,9 @@ module WIP
         #   end
         # end
 
+        def default_config(term, options = {})
+        end
+
         def execute_config(term, options = {})
           query  = options[:required] ? "#{term} (*)" : term
           answer = @ui.ask(:err, "- #{query}: ") do |q|
@@ -147,7 +163,7 @@ module WIP
 
         # TODO: remove section concept (?) ... maybe move to Task DSL
         def section(heading, &block)
-          if markdown?
+          if format == :markdown
             @ui.say(:out, "- [ ] #{heading}...")
             @ui.indent(:out, &block)
           else
@@ -170,20 +186,15 @@ module WIP
         end
 
         def interactive?
-          @interactive ||= options.interactive unless defined?(@interactive)
-          !! @interactive
-        end
-
-        def markdown?
-          format == :markdown
+          options.interactive
         end
 
         def format
-          @options.format ? @options.format.intern : :text
+          options.format
         end
 
         def mode
-          @mode ||= options.mode.intern
+          options.mode
         end
       end
     end

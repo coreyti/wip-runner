@@ -1,7 +1,6 @@
 module WIP
   module Runner::Spec
     module Helpers::Matchers
-      # TODO: without a :to option, join them.
       def show(expected, options = {})
         stream = options[:to]    || :combined # :to    => [:out | :err]
         match  = options[:match] || :full     # :match => [:full | :partial]

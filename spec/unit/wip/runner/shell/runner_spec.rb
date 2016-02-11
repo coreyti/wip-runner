@@ -2,8 +2,12 @@ require 'spec_helper'
 
 module WIP::Runner
   describe Shell::Runner do
-    subject(:runner) { Shell::Runner.new(ui, task, {}) }
-    let(:env) { { :VARIABLE => 'value from env' } }
+    subject(:runner) { Shell::Runner.new(ui, task, env) }
+    let(:execution)  { runner.run(arguments, options) }
+    let(:execute)    { execution }
+    let(:arguments)  { Options.new }
+    let(:options)    { Options.new }
+    let(:env)        { {} }
     let(:task) do
       Shell::Task.new(nil) do |arguments, options|
         config :VARIABLE
@@ -13,8 +17,39 @@ module WIP::Runner
       end
     end
 
+    before do
+      # TODO: move this to the top-level. it should be used for non-interactive.
+      ENV['VARIABLE'] = 'value from ENV'
+    end
+
+    after do
+      ENV.delete('VARIABLE')
+    end
+
+    context 'when executed with default options' do
+      let(:task) { Shell::Task.new(nil) { |arguments, options| } }
+
+      it 'defaults to mode: "execute"' do
+        execute
+        expect(runner.options.mode)
+          .to eq(:execute)
+      end
+
+      it 'defaults to interactive' do
+        execute
+        expect(runner.options.interactive)
+          .to eq(true)
+      end
+
+      it 'defaults to format: "text"' do
+        execute
+        expect(runner.options.format)
+          .to eq(:text)
+      end
+    end
+
     context 'when executed with mode: "execute"' do
-      let(:execution) { simulate { runner.run(nil, options) } }
+      let(:execution) { simulate { runner.run(arguments, options) } }
       let(:options)   { Options.new({ :mode => :execute, :interactive => true })}
 
       before do
@@ -25,7 +60,7 @@ module WIP::Runner
 
       it 'writes prompts to STDERR' do
         expect { execution }.to show %(
-          - VARIABLE:
+          - VARIABLE:  |value from ENV|
         ), :to => :err
       end
 
@@ -39,17 +74,7 @@ module WIP::Runner
     end
 
     context 'when executed with mode: "execute + non-interactive"' do
-      let(:execution) { runner.run(nil, options) }
-      let(:options)   { Options.new({ :mode => :execute, :interactive => false })}
-
-      before do
-        # TODO: move this to the top-level. it should be used for non-interactive.
-        ENV['VARIABLE'] = 'value from ENV'
-      end
-
-      after do
-        ENV.delete('VARIABLE')
-      end
+      let(:options) { Options.new({ :mode => :execute, :interactive => false })}
 
       it 'does not write prompts to STDERR' do
         expect { execution }.to_not output.to_stderr
@@ -65,7 +90,7 @@ module WIP::Runner
     end
 
     context 'when executed with mode: "display"' do
-      let(:execution) { simulate { runner.run(nil, options) } }
+      let(:execution) { simulate { runner.run(arguments, options) } }
       let(:options)   { Options.new({ :mode => :display, :interactive => true })}
 
       before do
@@ -76,7 +101,7 @@ module WIP::Runner
 
       it 'writes prompts to STDERR' do
         expect { execution }.to show %(
-          - VARIABLE:
+          - VARIABLE:  |value from ENV|
         ), :to => :err
       end
 
@@ -88,17 +113,7 @@ module WIP::Runner
     end
 
     context 'when executed with mode: "display + non-interactive"' do
-      let(:execution) { runner.run(nil, options) }
-      let(:options)   { Options.new({ :mode => :display, :interactive => false })}
-
-      before do
-        # TODO: move this to the top-level. it should be used for non-interactive.
-        ENV['VARIABLE'] = 'value from ENV'
-      end
-
-      after do
-        ENV.delete('VARIABLE')
-      end
+      let(:options) { Options.new({ :mode => :display, :interactive => false })}
 
       it 'does not write prompts to STDERR' do
         expect { execution }.to_not output.to_stderr
@@ -117,6 +132,27 @@ module WIP::Runner
 
     context 'when executed with format: x' do
 
+    end
+
+    context 'when executed with @env' do
+      let(:execution) { simulate { runner.run(arguments, options) } }
+      let(:env)       { { 'VARIABLE' => 'value from @env' } }
+
+      before do
+        simulate(
+          "- VARIABLE: " => nil
+        )
+      end
+
+      it 'sets config defaults from @env' do
+        expect { execution }.to show %(
+          - VARIABLE:  |value from @env|
+
+          echo $VARIABLE
+
+          > value from @env
+        )
+      end
     end
   end
 end
