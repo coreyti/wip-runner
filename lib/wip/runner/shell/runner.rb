@@ -6,6 +6,7 @@ module WIP
       class Runner
         attr_reader :arguments, :options
 
+        # TODO: move env and/or block to #run ???
         def initialize(ui, tasks, env = {}, &block)
           @ui    = ui
           @tasks = [tasks].flatten
@@ -32,11 +33,12 @@ module WIP
 
         private
 
+        # :p
         def default_proc
           Proc.new { |line| @ui.say(:out, "> #{line.rstrip}") }
         end
 
-        def evaluate(task)
+        def x_evaluate(task)
           task.build(arguments, options)
           prefix = options.preview ? :preview : :execute
 
@@ -69,12 +71,32 @@ module WIP
           end
         end
 
+        def evaluate(task)
+          task.build(arguments, options)
+
+          if interactive? && ! task.configs.empty?
+            task.configs.each do |term, options, block|
+              execute_config(term, options, &block)
+            end
+          end
+
+          task.shells.each do |shell|
+            section("Shell #{shell.type.downcase}") do
+              send(:"#{mode}_shell", shell)
+            end
+          end
+
+          # TODO: children tasks
+        end
+
         # ---
 
-        # class Execute
-        # end
+        # module Mode
+        #   class Execute
+        #   end
         #
-        # class Preview
+        #   class Display
+        #   end
         # end
 
         def execute_config(term, options = {})
@@ -94,7 +116,7 @@ module WIP
         end
 
         def execute_shell(shell)
-          preview_shell(shell) unless options.silent
+          display_shell(shell) # unless options.silent
 
           if approved?
             @ui.newline(:out)
@@ -117,18 +139,13 @@ module WIP
           end
         end
 
-        # TODO: determine where preview_config should still prompt.
-        def preview_config(term, options = {})
-          message = options[:required] ? "#{term} (*)" : term
-          @ui.say(:err, "- #{message}")
-        end
-
-        def preview_shell(shell)
+        def display_shell(shell)
           @ui.say(:out, shell.description)
         end
 
         # ---
 
+        # TODO: remove section concept (?) ... maybe move to Task DSL
         def section(heading, &block)
           if markdown?
             @ui.say(:out, "- [ ] #{heading}...")
@@ -142,34 +159,6 @@ module WIP
           end
         end
 
-        def format
-          @options.format ? @options.format.intern : :text
-        end
-
-        def markdown?
-          format == :markdown
-        end
-
-        # $ wip-runner x --format=markdown
-        # $ wip-runner x --log=out.md       # log format determined by extension
-        #
-        # @formatter = Formatter::Markdown.new(@io)
-        #
-        # def item(text)
-        #   formatter.item(text)
-        # end
-        #
-        # class Formatter::Markdown
-        #   def item(text, check = true)
-        #     @io.say check ? "- [ ] #{text}" : "- #{text}"
-        #   end
-        # end
-        #
-        # class Formatter::Plain
-        # class Formatter::Color
-        # class Formatter::HTML
-        # class Formatter::JSON
-
         # ---
 
         def approved?
@@ -178,6 +167,23 @@ module WIP
           # case choice
           # when 'yes'
           # end
+        end
+
+        def interactive?
+          @interactive ||= options.interactive unless defined?(@interactive)
+          !! @interactive
+        end
+
+        def markdown?
+          format == :markdown
+        end
+
+        def format
+          @options.format ? @options.format.intern : :text
+        end
+
+        def mode
+          @mode ||= options.mode.intern
         end
       end
     end
