@@ -14,6 +14,10 @@ module WIP
       def values
         self.to_h.values
       end
+
+      def merge(other)
+        Options.new(self.to_h.merge(other.to_h))
+      end
     end
   end
 end

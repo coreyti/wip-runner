@@ -89,8 +89,9 @@ module WIP
 
           if interactive? && ! task.configs.empty?
             task.configs.each do |term, options, block|
-              execute_config(term, options, &block)
+              evaluate_config(term, options, &block)
             end
+            @ui.newline(:err)
           end
 
           task.shells.each do |shell|
@@ -113,12 +114,13 @@ module WIP
         # end
 
         def default_config(term, options = {})
+          options[:default] || @env[term] || ENV[term]
         end
 
-        def execute_config(term, options = {})
+        def evaluate_config(term, options = {})
           query  = options[:required] ? "#{term} (*)" : term
           answer = @ui.ask(:err, "- #{query}: ") do |q|
-            q.default  = (options[:default] || ENV[term]) unless options[:password]
+            q.default  = default_config(term, options) unless options[:password]
             q.echo     = false  if options[:password]
             q.validate = /^.+$/ if options[:required]
           end

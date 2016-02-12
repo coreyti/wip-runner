@@ -14,25 +14,27 @@ module WIP
 
         if block_given?
           highline = ui.send(:err)
+          originput = highline.instance_variable_get(:@input)
 
           begin
-            originput = highline.instance_variable_get(:@input)
-            simulator = Simulator.new(@simulated.values, (@simulated.keys == ['*']))
-            highline.instance_variable_set(:@input, simulator)
+            if @simulated
+              simulator = Simulator.new(@simulated.values, (@simulated.keys == ['*']))
+              highline.instance_variable_set(:@input, simulator)
 
-            @simulated.keys.each do |question|
-              # NOTE: the "|default|" is stripped because that is added
-              # later by the Question instance, in time for a call to #say.
-              if question.is_a?(Array)
-                expect(ui).to receive(:ask)
-                  .with(:err, *question)
-                  .and_call_original
-              else
-                question = question.sub(/:\s\|.*\Z/, ': ')
-                expect(ui).to receive(:ask)
-                  .with(:err, question)
-                  .and_call_original
-              end unless question == '*'
+              @simulated.keys.each do |question|
+                # NOTE: the "|default|" is stripped because that is added
+                # later by the Question instance, in time for a call to #say.
+                if question.is_a?(Array)
+                  expect(ui).to receive(:ask)
+                    .with(:err, *question)
+                    .and_call_original
+                else
+                  question = question.sub(/:\s\|.*\Z/, ': ')
+                  expect(ui).to receive(:ask)
+                    .with(:err, question)
+                    .and_call_original
+                end unless question == '*'
+              end
             end
 
             yield
