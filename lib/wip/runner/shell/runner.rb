@@ -6,16 +6,14 @@ module WIP
       class Runner
         attr_reader :arguments, :options
 
-        # TODO: move env and/or block to #run ???
         # TODO: enforce env keys as String OR Symbol
-        def initialize(ui, tasks, env = {}, &block)
-          @ui    = ui
-          @tasks = [tasks].flatten
-          @env   = env
-          @proc  = block || default_proc
+        def initialize(ui, env = {})
+          @ui  = ui
+          @env = env
         end
 
-        def run(arguments, options)
+        # TODO: custom proc for UI???
+        def run(tasks, arguments, options)
           @arguments = arguments
           @options   = default(:options).merge(options)
 
@@ -26,7 +24,7 @@ module WIP
               end
             end
           else
-            @tasks.each do |task|
+            [tasks].flatten.each do |task|
               evaluate(task)
             end
           end
@@ -40,15 +38,14 @@ module WIP
               :interactive => true,
               :format      => :text,
               :mode        => :execute
-            })
+            }),
+            :procs => {
+              :execute => Proc.new { |line| @ui.say(:out, "> #{line.rstrip}") },
+              :silent  => Proc.new { |line| }
+            }
           }
 
           @defaults[setting]
-        end
-
-        # :p
-        def default_proc
-          Proc.new { |line| @ui.say(:out, "> #{line.rstrip}") }
         end
 
         def x_evaluate(task)
@@ -106,10 +103,13 @@ module WIP
         # ---
 
         # module Mode
+        #   class Display
+        #   end
+        #
         #   class Execute
         #   end
         #
-        #   class Display
+        #   class Silent < Execute
         #   end
         # end
 
@@ -133,20 +133,16 @@ module WIP
           end
         end
 
+        def display_shell(shell)
+          @ui.say(:out, shell.content)
+        end
+
         def execute_shell(shell)
-          display_shell(shell) # unless options.silent
+          display_shell(shell) unless mode == :silent
 
           if approved?
             @ui.newline(:out)
-            # result = shell.execute(@io, @env) do |line|
-            #   # @io.say "> `#{line.rstrip}`<br>"
-            #   @io.say "> #{line.rstrip}"
-            #   # puts "#{@io.indentation}> `#{line.rstrip}`  "
-            #   # @io.instance_variable_get(:@output).puts "> `#{line.rstrip}`  "
-            #
-            #   # @io.send((action || :say), line)
-            # end
-            result = shell.execute(@ui, @env, &@proc)
+            result = shell.execute(@ui, @env, &default(:procs)[mode])
             @ui.newline(:out)
 
             # TODO: raise instead of exit.
@@ -157,8 +153,8 @@ module WIP
           end
         end
 
-        def display_shell(shell)
-          @ui.say(:out, shell.description)
+        def silent_shell(shell)
+          execute_shell(shell)
         end
 
         # ---

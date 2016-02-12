@@ -15,15 +15,6 @@ module WIP
             super
           end
 
-          def description(format = :text)
-            case format
-            when :markdown
-              "```\n#{@content}\n```"
-            else
-              @content
-            end
-          end
-
           def execute(ui, env, &block)
             prompts.empty? ? simplex!(ui, env, &block) : complex!(ui, env, &block)
           end

@@ -40,7 +40,6 @@ module WIP
           if @command.respond_to?(method_name)
             @command.send(method_name, *args, &block)
           else
-            # super
             @command.instance_eval {
               method_missing(method_name, *args, &block)
             }

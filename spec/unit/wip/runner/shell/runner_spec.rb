@@ -2,8 +2,8 @@ require 'spec_helper'
 
 module WIP::Runner
   describe Shell::Runner do
-    subject(:runner) { Shell::Runner.new(ui, task, env) }
-    let(:execution)  { simulate { runner.run(arguments, options) } }
+    subject(:runner) { Shell::Runner.new(ui, env) }
+    let(:execution)  { simulate { runner.run(task, arguments, options) } }
     let(:execute)    { execution }
     let(:arguments)  { Options.new }
     let(:options)    { Options.new }
@@ -139,7 +139,7 @@ module WIP::Runner
       end
 
       it 'does not write to STDOUT' do
-        expect { execution }.to_not output.to_stdout
+        expect { execution }.to_not show 'value', :to => :out, :match => :partial
       end
     end
 
@@ -156,11 +156,11 @@ module WIP::Runner
     end
 
     context 'when executed with format: markdown' do
-
+      it 'is PENDING'
     end
 
     context 'when executed with format: x' do
-
+      it 'is PENDING'
     end
 
     context 'when executed with @env' do
@@ -237,6 +237,37 @@ module WIP::Runner
 
           > value from @env
         )
+      end
+    end
+
+    context 'when used for multiple executions' do
+      let(:task1) do
+        Shell::Task.new(nil) do |arguments, options|
+          config :VARIABLE
+        end
+      end
+      let(:task2) do
+        Shell::Task.new(nil) do |arguments, options|
+          shell :script, %{
+            echo $VARIABLE
+          }
+        end
+      end
+
+      before do
+        simulate(
+          "- VARIABLE: " => 'value from user'
+        )
+      end
+
+      it 'propagates config settings' do
+        simulate { runner.run([task1], arguments, options) }
+        expect   { runner.run([task2], arguments, options) }
+          .to show %(
+            echo $VARIABLE
+
+            > value from user
+          )
       end
     end
   end

@@ -1,6 +1,8 @@
 module WIP
   module Runner::Spec
     module Helpers::Matchers
+      # TODO: fix the following message:
+      # expected block to not STDCOMBINED to receive the following content (partial match):, but output "- VARIABLE:  |value from ENV|\n\necho $VARIABLE\n\n> value from user"
       def show(expected, options = {})
         stream = options[:to]    || :combined # :to    => [:out | :err]
         match  = options[:match] || :full     # :match => [:full | :partial]
