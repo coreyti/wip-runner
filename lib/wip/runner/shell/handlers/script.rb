@@ -51,7 +51,7 @@ module WIP
             Open3.popen2e(env, "#{executable} #{arguments}") do |stdin, stdoe, thread|
               prompts.each do |term, options|
                 stdoe.expect(term) do |result|
-                  stdin.puts ui.ask(:err, term) do |q|
+                  stdin.puts ui.ask(term) do |q|
                     options.each { |k, v| q.send(:"#{k}=", v) }
                   end
                   stdoe.gets

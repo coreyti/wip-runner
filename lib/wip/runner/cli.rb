@@ -54,8 +54,10 @@ module WIP
         recipient = (command(args) || @parser)
         recipient.run(args)
       rescue InvalidCommand => e
-        @ui.say(:err, e.message)
-        @ui.newline(:err)
+        @ui.err {
+          @ui.say(e.message)
+          @ui.newline
+        }
         @parser.help
       end
 
@@ -77,7 +79,9 @@ module WIP
         end
 
         def help
-          @ui.say(:err, options.help)
+          @ui.err {
+            @ui.say(options.help)
+          }
         end
 
         private
@@ -103,7 +107,9 @@ module WIP
             parser.separator 'Options:'
 
             parser.on_tail '-h', '--help', 'Prints help messages' do
-              @ui.say(:err, parser)
+              @ui.err {
+                @ui.say(parser)
+              }
             end
           end
         end

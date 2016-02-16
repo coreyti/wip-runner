@@ -56,7 +56,9 @@ module WIP
 
           def execute(args, options)
             super
-            @ui.say(:out, 'running nested command...')
+            @ui.out {
+              @ui.say('running nested command...')
+            }
           end
         end
       end

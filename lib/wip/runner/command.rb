@@ -97,8 +97,10 @@ module WIP
       end
 
       def print_error(e)
-        @ui.say(:err, e.message)
-        @ui.newline(:err)
+        @ui.err {
+          @ui.say(e.message)
+          @ui.newline
+        }
         parser.help
       end
     end

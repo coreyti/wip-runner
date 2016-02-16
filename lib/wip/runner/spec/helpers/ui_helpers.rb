@@ -13,8 +13,8 @@ module WIP
         end
 
         if block_given?
-          highline = ui.send(:err)
-          originput = highline.instance_variable_get(:@input)
+          highline = ui.err
+          original = highline.instance_variable_get(:@input)
 
           begin
             if @simulated
@@ -25,13 +25,13 @@ module WIP
                 # NOTE: the "|default|" is stripped because that is added
                 # later by the Question instance, in time for a call to #say.
                 if question.is_a?(Array)
-                  expect(ui).to receive(:ask)
-                    .with(:err, *question)
+                  expect(highline).to receive(:ask)
+                    .with(*question)
                     .and_call_original
                 else
                   question = question.sub(/:\s\|.*\Z/, ': ')
-                  expect(ui).to receive(:ask)
-                    .with(:err, question)
+                  expect(highline).to receive(:ask)
+                    .with(question)
                     .and_call_original
                 end unless question == '*'
               end
@@ -39,7 +39,7 @@ module WIP
 
             yield
           ensure
-            highline.instance_variable_set(:@input, originput)
+            highline.instance_variable_set(:@input, original)
           end
         end
       end

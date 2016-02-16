@@ -22,7 +22,7 @@ module WIP
         private
 
         def stylize(text, style)
-          stylize? ? @ui.color(:out, text, style) : text
+          stylize? ? @ui.out { @ui.color(text, style) } : text
         end
 
         def stylize?
@@ -30,37 +30,41 @@ module WIP
         end
 
         def process_overview
-          @ui.newline :out
-          @ui.indent :out do
-            @ui.say :out, "# #{stylize(@workflow.heading, :underline)}"
+          @ui.out {
+            @ui.newline
+            @ui.indent do
+              @ui.say "# #{stylize(@workflow.heading, :underline)}"
 
-            unless @workflow.overview.nil?
-              @ui.newline :out
-              @ui.say :out, @workflow.overview
-            end
+              unless @workflow.overview.nil?
+                @ui.newline
+                @ui.say @workflow.overview
+              end
 
-            unless @workflow.prologue.nil?
-              @ui.newline :out
-              @ui.say :out, @workflow.prologue
+              unless @workflow.prologue.nil?
+                @ui.newline
+                @ui.say @workflow.prologue
+              end
             end
-          end
+          }
         end
 
         def process_workflow
           @context.push({ sources: [] })
 
-          @ui.indent :out do
-            process_configs unless @options.preview
-            process_guards unless @options.preview
+          @ui.out {
+            @ui.indent do
+              process_configs unless @options.preview
+              process_guards unless @options.preview
 
-            @workflow.shells.each do |mode, content|
-              process_shell(content, mode)
-            end
+              @workflow.shells.each do |mode, content|
+                process_shell(content, mode)
+              end
 
-            @workflow.tasks.each do |task|
-              process_task(task)
+              @workflow.tasks.each do |task|
+                process_task(task)
+              end
             end
-          end
+          }
 
           @context.pop
         rescue GuardError, HaltSignal
@@ -70,8 +74,10 @@ module WIP
         def process_task(task, overview = true)
           process_block('##', task, overview, :underline) do
             if overview && ! (task.shells.empty? && task.steps.empty?)
-              @ui.newline :out
-              @ui.say :out, 'Steps...'
+              @ui.out {
+                @ui.newline
+                @ui.say 'Steps...'
+              }
             end
 
             if @options.preview
@@ -83,58 +89,62 @@ module WIP
                 process_step(step)
               end
             else
-              if overview
-                @options.preview = true
-                task.shells.each do |mode, content|
-                  process_shell(content, mode)
-                end
-                @options.preview = false
+              @ui.out {
+                if overview
+                  @options.preview = true
+                  task.shells.each do |mode, content|
+                    process_shell(content, mode)
+                  end
+                  @options.preview = false
 
-                task.steps.each do |step|
-                  @ui.newline :out
-                  @ui.say(:out, "- [ ] #{step.heading}")
-                end
-              end
-
-              @ui.newline :out
-              choice = @ui.choose(:err, 'yes', 'no', 'skip', 'step', 'preview') do |menu|
-                menu.header = 'Continue?'
-                menu.flow   = :inline
-                menu.index  = :none
-              end
-
-              case choice
-              when 'yes'
-                proceed_with_task(task)
-              when 'no'
-                raise HaltSignal
-              when 'skip'
-                @ui.indent_level -= 1 # WILL FAIL!
-                return
-              when 'step'
-                @options.stepwise = true
-                task.shells.each do |mode, content|
-                  process_shell(content, mode)
+                  task.steps.each do |step|
+                      @ui.newline
+                      @ui.say("- [ ] #{step.heading}")
+                  end
                 end
 
-                task.steps.each do |step|
-                  process_step(step)
-                end
-                @options.stepwise = false
-              when 'preview'
-                @options.preview = true
-                task.shells.each do |mode, content|
-                  process_shell(content, mode)
-                end
-                task.steps.each do |step|
-                  process_step(step)
-                end
-                @options.preview = false
+                @ui.newline
+                @ui.err {
+                  choice = @ui.choose('yes', 'no', 'skip', 'step', 'preview') do |menu|
+                    menu.header = 'Continue?'
+                    menu.flow   = :inline
+                    menu.index  = :none
+                  end
 
-                @ui.indent(:out, -1) do
-                  process_task(task, false)
-                end
-              end
+                  case choice
+                  when 'yes'
+                    proceed_with_task(task)
+                  when 'no'
+                    raise HaltSignal
+                  when 'skip'
+                    @ui.indent_level -= 1
+                    return
+                  when 'step'
+                    @options.stepwise = true
+                    task.shells.each do |mode, content|
+                      process_shell(content, mode)
+                    end
+
+                    task.steps.each do |step|
+                      process_step(step)
+                    end
+                    @options.stepwise = false
+                  when 'preview'
+                    @options.preview = true
+                    task.shells.each do |mode, content|
+                      process_shell(content, mode)
+                    end
+                    task.steps.each do |step|
+                      process_step(step)
+                    end
+                    @options.preview = false
+
+                    @ui.indent(-1) do
+                      process_task(task, false)
+                    end
+                  end
+                }
+              }
             end
           end
         end
@@ -153,24 +163,24 @@ module WIP
                 end
                 @options.preview = false
 
-                @ui.newline :out
-                choice = @ui.choose(:err, 'yes', 'no', 'skip') do |menu|
-                  menu.header = 'Continue?'
-                  menu.flow   = :inline
-                  menu.index  = :none
-                end
+                @ui.err {
+                  @ui.newline
+                  choice = @ui.choose('yes', 'no', 'skip') do |menu|
+                    menu.header = 'Continue?'
+                    menu.flow   = :inline
+                    menu.index  = :none
+                  end
 
-                case choice
-                when 'yes'
-                  proceed_with_step(step)
-                when 'no'
-                  raise HaltSignal
-                when 'skip'
-                  @ui.indent_level -= 1 # WILL FAIL
-                  return
-                end
-
-
+                  case choice
+                  when 'yes'
+                    proceed_with_step(step)
+                  when 'no'
+                    raise HaltSignal
+                  when 'skip'
+                    @ui.indent_level -= 1
+                    return
+                  end
+                }
               else
                 proceed_with_step(step)
               end
@@ -180,23 +190,25 @@ module WIP
 
         def process_configs
           unless @workflow.configs.empty?
-            @ui.newline :err
-            @ui.say :err, "## #{stylize('Configuration', :underline)}"
-            @ui.indent :err do
-              @ui.newline :err
-              @ui.say :err, 'Please provide values for the following...'
+            @ui.err {
+              @ui.newline
+              @ui.say "## #{stylize('Configuration', :underline)}"
+              @ui.indent do
+                @ui.newline
+                @ui.say 'Please provide values for the following...'
 
-              @workflow.configs.each do |key, options|
-                answer = @ui.ask(:err, "- #{key}: ") do |q|
-                  q.default  = (options[:default] || ENV[key])
-                  if options[:required]
-                    # q.validate = Proc.new { |a| ! a.empty? }
-                    q.validate = /^.+$/
+                @workflow.configs.each do |key, options|
+                  answer = @ui.ask("- #{key}: ") do |q|
+                    q.default  = (options[:default] || ENV[key])
+                    if options[:required]
+                      # q.validate = Proc.new { |a| ! a.empty? }
+                      q.validate = /^.+$/
+                    end
                   end
+                  @env[key] = answer unless answer.empty?
                 end
-                @env[key] = answer unless answer.empty?
               end
-            end
+            }
           end
         end
 
@@ -229,23 +241,25 @@ module WIP
         end
 
         def process_block(prefix, component, overview = true, style = nil)
-          @context.push({ sources: [] })
+          @ui.out {
+            @context.push({ sources: [] })
 
-          if overview
-            @ui.newline :out
-            @ui.say(:out, "#{prefix} #{stylize(component.heading, style)}")
-          end
+            if overview
+              @ui.newline
+              @ui.say("#{prefix} #{stylize(component.heading, style)}")
+            end
 
-          @ui.indent :out do
-            unless component.prologue.nil?
-              @ui.newline :out
-              @ui.say :out, component.prologue
-            end if overview
+            @ui.indent do
+              unless component.prologue.nil?
+                @ui.newline
+                @ui.say component.prologue
+              end if overview
 
-            yield if block_given?
-          end
+              yield if block_given?
+            end
 
-          @context.pop
+            @context.pop
+          }
         end
 
         def process_shell(content, mode)
@@ -266,14 +280,16 @@ module WIP
             prefix = '→ '
           end
 
-          @ui.newline :out
-          content.split("\n").each do |action|
-            if action.empty?
-              @ui.newline :out
-            else
-              @ui.say(:out, "#{prefix}#{stylize(action, :bold)}")
+          @ui.out {
+            @ui.newline
+            content.split("\n").each do |action|
+              if action.empty?
+                @ui.newline
+              else
+                @ui.say("#{prefix}#{stylize(action, :bold)}")
+              end
             end
-          end
+          }
         end
 
         # ---
@@ -323,22 +339,24 @@ module WIP
           preview(content, :script)
 
           if @options.stepwise
-            @ui.newline :out
-            choice = @ui.choose(:err, 'yes', 'no', 'skip') do |menu|
-              menu.header = 'Continue?'
-              menu.flow   = :inline
-              menu.index  = :none
-            end
+            @ui.err {
+              @ui.newline
+              choice = @ui.choose('yes', 'no', 'skip') do |menu|
+                menu.header = 'Continue?'
+                menu.flow   = :inline
+                menu.index  = :none
+              end
 
-            case choice
-            when 'yes'
-              @ui.newline :out
-              proceed_with_script(content)
-            when 'no'
-              raise HaltSignal
-            when 'skip'
-              @ui.newline :out
-            end
+              case choice
+              when 'yes'
+                @ui.newline
+                proceed_with_script(content)
+              when 'no'
+                raise HaltSignal
+              when 'skip'
+                @ui.newline
+              end
+            }
           else
             proceed_with_script(content)
           end
@@ -350,24 +368,26 @@ module WIP
             preview(action, :lines)
 
             if @options.stepwise
-              @ui.newline :out
-              choice = @ui.choose(:err, 'yes', 'no', 'skip') do |menu|
-                menu.header = 'Continue?'
-                menu.flow   = :inline
-                menu.index  = :none
-              end
+              @ui.err {
+                @ui.newline
+                choice = @ui.choose('yes', 'no', 'skip') do |menu|
+                  menu.header = 'Continue?'
+                  menu.flow   = :inline
+                  menu.index  = :none
+                end
 
-              case choice
-              when 'yes'
-                @ui.newline :out
-                proceed_with_line(action)
-                next
-              when 'no'
-                raise HaltSignal
-              when 'skip'
-                @ui.newline :out
-                next
-              end
+                case choice
+                when 'yes'
+                  @ui.newline
+                  proceed_with_line(action)
+                  next
+                when 'no'
+                  raise HaltSignal
+                when 'skip'
+                  @ui.newline
+                  next
+                end
+              }
             else
               proceed_with_line(action)
             end
@@ -385,11 +405,13 @@ module WIP
             command = %Q{bash -c "#{command} 2>&1"}
 
             IO.popen(@env, command) do |pipe|
-              @ui.indent :out do
-                pipe.each do |line|
-                  @ui.say(:out, line)
+              @ui.out {
+                @ui.indent do
+                  pipe.each do |line|
+                    @ui.say(line)
+                  end
                 end
-              end
+              }
             end
 
             exit 1 unless $?.success?
@@ -427,13 +449,15 @@ module WIP
           Open3.popen2e(@env, script) do |stdin, stdoe, wait_thread|
             status = wait_thread.value
 
-            @ui.indent :out do
-              while line = stdoe.gets
-                @ui.say(:out, "⫶ #{line}")
+            @ui.out {
+              @ui.indent do
+                while line = stdoe.gets
+                  @ui.say("⫶ #{line}")
+                end
               end
-            end
 
-            exit 1 unless status.success?
+              exit 1 unless status.success?
+            }
           end
         end
 
@@ -445,13 +469,15 @@ module WIP
           Open3.popen2e(@env, command) do |stdin, stdoe, wait_thread|
             status = wait_thread.value
 
-            @ui.indent :out do
-              while line = stdoe.gets
-                @ui.say(:out, "⫶ #{line}")
+            @ui.out {
+              @ui.indent do
+                while line = stdoe.gets
+                  @ui.say("⫶ #{line}")
+                end
               end
-            end
 
-            exit 1 unless status.success?
+              exit 1 unless status.success?
+            }
           end
         end
 
@@ -469,7 +495,7 @@ module WIP
         end
 
         def error(message)
-          @ui.say :out, stylize(message, :red)
+          @ui.err { @ui.say stylize(message, :red) }
         end
 
         def guard_error(description, command, check, actual)
@@ -482,29 +508,31 @@ module WIP
             message = ['Output did not match expected', check.inspect, actual]
           end
 
-          @ui.newline :out
-          error "Guard failed: '#{description}'"
-          @ui.indent :out do
-            error "→ #{command}"
-          end
-
-          if message.is_a?(Array)
-            error message[0]
-
-            @ui.newline :out
-            @ui.say :out, stylize('Expected:', :bold)
-            @ui.indent :out do
-              @ui.say :out, message[1]
+          @ui.err {
+            @ui.newline
+            error "Guard failed: '#{description}'"
+            @ui.indent do
+              error "→ #{command}"
             end
 
-            @ui.newline :out
-            @ui.say :out, stylize('Actual:', :bold)
-            @ui.indent :out do
-              @ui.say :out, message[2]
+            if message.is_a?(Array)
+              error message[0]
+
+              @ui.newline
+              @ui.say stylize('Expected:', :bold)
+              @ui.indent do
+                @ui.say message[1]
+              end
+
+              @ui.newline
+              @ui.say stylize('Actual:', :bold)
+              @ui.indent do
+                @ui.say message[2]
+              end
+            else
+              error message
             end
-          else
-            error message
-          end
+          }
 
           raise GuardError, message[0]
         end

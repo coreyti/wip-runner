@@ -12,8 +12,9 @@ module WIP
         if block_given?
           current = @output
           @output = @err
-          yield
+          result  = yield
           @output = current
+          result
         else
           @err
         end
@@ -23,8 +24,9 @@ module WIP
         if block_given?
           current = @output
           @output = @out
-          yield
+          result  = yield
           @output = current
+          result
         else
           @out
         end
@@ -41,7 +43,6 @@ module WIP
       end
 
       def respond_to_missing?(method_name, include_private = false)
-        puts "there... #{method_name.inspect}"
         @output.respond_to?(method_name) || super
       end
 

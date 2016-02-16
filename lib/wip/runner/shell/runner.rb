@@ -18,11 +18,13 @@ module WIP
           @options   = default(:options).merge(options)
 
           if format == :markdown
-            @ui.indent(:out) do
-              @tasks.each do |task|
-                evaluate(task)
+            @ui.out {
+              @ui.indent do
+                @tasks.each do |task|
+                  evaluate(task)
+                end
               end
-            end
+            }
           else
             [tasks].flatten.each do |task|
               evaluate(task)
@@ -40,7 +42,7 @@ module WIP
               :mode        => :execute
             }),
             :procs => {
-              :execute => Proc.new { |line| @ui.say(:out, "> #{line.rstrip}") },
+              :execute => Proc.new { |line| @ui.out { @ui.say("> #{line.rstrip}") } },
               :silent  => Proc.new { |line| }
             }
           }
@@ -69,7 +71,7 @@ module WIP
           task.shells.each do |shell|
             section("Shell #{shell.type.downcase}") do
               send(:"#{prefix}_shell", shell)
-              # @ui.newline(:err)
+              # @ui.newline
             end
           end
 
@@ -88,7 +90,7 @@ module WIP
             task.configs.each do |term, options, block|
               evaluate_config(term, options, &block)
             end
-            @ui.newline(:err)
+            @ui.err { @ui.newline }
           end
 
           task.shells.each do |shell|
@@ -121,10 +123,12 @@ module WIP
 
         def evaluate_config(term, options = {})
           query  = options[:required] ? "#{term} (*)" : term
-          answer = @ui.ask(:err, "- #{query}: ") do |q|
-            q.default  = default_config(term, options) unless options[:password]
-            q.echo     = false  if options[:password]
-            q.validate = /^.+$/ if options[:required]
+          answer = @ui.err do
+            @ui.ask("- #{query}: ") do |q|
+              q.default  = default_config(term, options) unless options[:password]
+              q.echo     = false  if options[:password]
+              q.validate = /^.+$/ if options[:required]
+            end
           end
 
           if block_given?
@@ -136,22 +140,28 @@ module WIP
         end
 
         def display_shell(shell)
-          @ui.say(:out, shell.content)
+          @ui.out {
+            @ui.say(shell.content)
+          }
         end
 
         def execute_shell(shell)
           display_shell(shell) unless mode == :silent
 
           if approved?
-            @ui.newline(:out)
-            result = shell.execute(@ui, @env, &default(:procs)[mode])
-            @ui.newline(:out)
+            @ui.out {
+              @ui.newline
+              result = shell.execute(@ui, @env, &default(:procs)[mode])
+              @ui.newline
 
-            # TODO: raise instead of exit.
-            exit 1 unless result.success?
+              # TODO: raise instead of exit.
+              exit 1 unless result.success?
+            }
           else
-            @ui.newline(:err)
-            @ui.say(:err, '> (skipped)')
+            @ui.err {
+              @ui.newline
+              @ui.say('> (skipped)')
+            }
           end
         end
 
@@ -164,14 +174,18 @@ module WIP
         # TODO: remove section concept (?) ... maybe move to Task DSL
         def section(heading, &block)
           if format == :markdown
-            @ui.say(:out, "- [ ] #{heading}...")
-            @ui.indent(:out, &block)
+            @ui.out {
+              @ui.say("- [ ] #{heading}...")
+              @ui.indent(&block)
+            }
           else
-            # @io.indent do
-              # @ui.say(:err, "#{heading}...")
+            @ui.err {
+              # @ui.indent do
+              # @ui.say("#{heading}...")
               yield
-              @ui.newline(:err)
-            # end
+              @ui.newline
+              # end
+            }
           end
         end
 
