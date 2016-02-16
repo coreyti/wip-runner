@@ -8,42 +8,94 @@ module WIP
         @err = HighLine.new(input, err, nil, nil, 2, 0)
       end
 
+      def err
+        if block_given?
+          current = @output
+          @output = @err
+          yield
+          @output = current
+        else
+          @err
+        end
+      end
+
+      def out
+        if block_given?
+          current = @output
+          @output = @out
+          yield
+          @output = current
+        else
+          @out
+        end
+      end
+
       protected
 
       def method_missing(method_name, *args, &block)
-        stream = args.first
-
-        if [:out, :err].include?(stream)
-          send(stream).send(method_name, *args[1..-1], &block)
-        # # NOTE: probably do NOT want this, but it's need for Workflows for now.
-        # elsif out.respond_to?(method_name)
-        #   out.send(method_name, *args[1..-1], &block)
+        if @output.respond_to?(method_name)
+          @output.send(method_name, *args, &block)
         else
           super
         end
       end
 
       def respond_to_missing?(method_name, include_private = false)
-        out.respond_to?(method_name) || super
+        puts "there... #{method_name.inspect}"
+        @output.respond_to?(method_name) || super
       end
 
-      private
-
-      def out
-        @out
-      end
-
-      def err
-        @err
-      end
-
-      def stdout
-        out.instance_variable_get(:'@output')
-      end
-
-      def stderr
-        err.instance_variable_get(:'@output')
-      end
+      # private
+      #
+      # def stdout
+      #   out.instance_variable_get(:'@output')
+      # end
+      #
+      # def stderr
+      #   err.instance_variable_get(:'@output')
+      # end
+      #
+      # def toggle(stream)
+      #   send((stream == :out) ? :err : :out)
+      # end
     end
   end
 end
+
+# par ce que, je n'aime pas le "stream"...
+# ???
+#
+# ui.out {
+#   indent do
+#     ask(...)
+#     say(...)
+#   end
+#
+#   err { ???
+#     ...
+#   }
+# }
+#
+# ui.err {
+#   ...
+# }
+#
+# OR...
+#
+# ui.target(:out)
+# ui.say
+
+
+# def indent(stream, increase = 1, statement = nil, multiline = nil, &block)
+#   toggle(stream).indent_level += increase
+#   send(stream).indent(increase, statement, multiline, &block)
+#   toggle(stream).indent_level -= increase
+# end
+
+# def indent(*args, &block)
+#   # args.shift if args.first.is_a?(Symbol)
+#   # @out.indent(*args, &block)
+#   # @err.indent(*args, &block)
+#   @out.indent(*args[1..-1], &block)
+#   @err.indent(*args[1..-1], &block)
+# end

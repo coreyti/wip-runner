@@ -97,7 +97,9 @@ module WIP
             end
           end
 
-          # TODO: children tasks
+          task.steps.each do |step|
+            evaluate(step)
+          end
         end
 
         # ---

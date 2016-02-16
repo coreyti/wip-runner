@@ -2,16 +2,15 @@ module WIP
   module Runner
     module Shell
       class Task
-        attr_reader :heading, :configs, :shells, :children
+        attr_reader :heading, :configs, :shells, :steps
 
-        # TODO: add optional "heading"
         def initialize(command, *args, &block)
-          @command  = command
-          @configs  = []
-          @shells   = []
-          @children = []
-          @heading  = args.first unless args.empty?
-          @block    = block
+          @command = command
+          @configs = []
+          @shells  = []
+          @steps   = []
+          @heading = args.first unless args.empty?
+          @block   = block
         end
 
         def build(arguments, options)
@@ -31,7 +30,7 @@ module WIP
         end
 
         def task(*args, &block)
-          children << Task.new(@command, *args, &block)
+          steps << Task.new(@command, *args, &block)
         end
 
         protected

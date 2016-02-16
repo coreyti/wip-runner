@@ -47,20 +47,26 @@ module WIP
       private
 
       class CustomUI < WIP::Runner::UI
+        def initialize(input, out, err)
+          @out = CustomLine.new(input, out, nil, nil, 2, 0)
+          @err = CustomLine.new(input, err, nil, nil, 2, 0)
+        end
+      end
+
+      class CustomLine < HighLine
         # Strips the same-line indicating, trailing space from questions in order
         # to print the newline in specs (that would come from user input).
-        def ask(stream, question, answer_type = String, &block)
-          super(stream, "#{question.rstrip}", answer_type, &block)
+        def ask(question, answer_type = String, &block)
+          super("#{question.rstrip}", answer_type, &block)
         end
 
         # Strips double spaces between question and default.
-        def say(stream, statement)
-          # puts statement.to_s.inspect
-          super stream, statement.to_s.gsub(/:\s{2,}\|/, ': |')
+        def say(statement)
+          super(statement.to_s.gsub(/:\s{2,}\|/, ': |'))
         end
 
         # Strips formatting for specs.
-        def color(stream, string, *colors)
+        def color(string, *colors)
           string
         end
       end

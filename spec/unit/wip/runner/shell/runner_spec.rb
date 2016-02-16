@@ -58,7 +58,7 @@ module WIP::Runner
 
       it 'writes prompts to STDERR' do
         expect { execution }.to show %(
-          - VARIABLE:  |value from ENV|
+          - VARIABLE: |value from ENV|
         ), :to => :err
       end
 
@@ -98,7 +98,7 @@ module WIP::Runner
 
       it 'writes prompts to STDERR' do
         expect { execution }.to show %(
-          - VARIABLE:  |value from ENV|
+          - VARIABLE: |value from ENV|
         ), :to => :err
       end
 
@@ -134,7 +134,7 @@ module WIP::Runner
 
       it 'writes prompts to STDERR' do
         expect { execution }.to show %(
-          - VARIABLE:  |value from ENV|
+          - VARIABLE: |value from ENV|
         ), :to => :err
       end
 
@@ -174,7 +174,7 @@ module WIP::Runner
 
       it 'sets config defaults from @env' do
         expect { execution }.to show %(
-          - VARIABLE:  |value from @env|
+          - VARIABLE: |value from @env|
 
           echo $VARIABLE
 
@@ -202,7 +202,7 @@ module WIP::Runner
 
       it 'sets config defaults from provided default' do
         expect { execution }.to show %(
-          - VARIABLE:  |value from default|
+          - VARIABLE: |value from default|
 
           echo $VARIABLE
 
