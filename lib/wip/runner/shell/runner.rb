@@ -13,21 +13,22 @@ module WIP
         end
 
         # TODO: custom proc for UI???
-        def run(tasks, arguments, options)
+        def run(tasks, arguments, options, &block)
           @arguments = arguments
           @options   = default(:options).merge(options)
 
           if format == :markdown
-            @ui.out {
-              @ui.indent do
-                @tasks.each do |task|
-                  evaluate(task)
-                end
-              end
-            }
+            raise 'TODO'
+            # @ui.out {
+            #   @ui.indent do
+            #     [tasks].flatted.each do |task|
+            #       evaluate(task)
+            #     end
+            #   end
+            # }
           else
             [tasks].flatten.each do |task|
-              evaluate(task)
+              evaluate(task, &block)
             end
           end
         end
@@ -37,8 +38,9 @@ module WIP
         def default(setting)
           @defaults ||= {
             :options => Options.new({
-              :interactive => true,
+              :echo        => true,
               :format      => :text,
+              :interactive => true,
               :mode        => :execute
             }),
             :procs => {
@@ -50,57 +52,24 @@ module WIP
           @defaults[setting]
         end
 
-        def x_evaluate(task)
-          task.build(arguments, options)
-          prefix = options.preview ? :preview : :execute
-
-          # if task.heading?
-          #   @io.say task.heading
-          #   @io.newline
-          # end
-
-          section('Config') do
-            # @ui.newline
-            # @io.say '```'
-            task.configs.each do |term, options, block|
-              send(:"#{prefix}_config", term, options, &block)
-            end
-            # @io.say '```'
-          end unless task.configs.empty?
-
-          task.shells.each do |shell|
-            section("Shell #{shell.type.downcase}") do
-              send(:"#{prefix}_shell", shell)
-              # @ui.newline
-            end
-          end
-
-          # p task.children
-          task.children.each do |child|
-            section('Task') do
-              evaluate(child)
-            end
-          end
-        end
-
-        def evaluate(task)
+        def evaluate(task, &block)
           task.build(arguments, options)
 
           if interactive? && ! task.configs.empty?
-            task.configs.each do |term, options, block|
-              evaluate_config(term, options, &block)
+            task.configs.each do |term, options, b|
+              evaluate_config(term, options, &b)
             end
             @ui.err { @ui.newline }
           end
 
           task.shells.each do |shell|
             section("Shell #{shell.type.downcase}") do
-              send(:"#{mode}_shell", shell)
+              send(:"#{mode}_shell", shell, &block)
             end
           end
 
           task.steps.each do |step|
-            evaluate(step)
+            evaluate(step, &block)
           end
         end
 
@@ -139,30 +108,40 @@ module WIP
           end
         end
 
-        def display_shell(shell)
-          @ui.out {
-            @ui.say(shell.content)
-          }
+        def display_shell(shell, &block)
+          if block_given?
+            block.call(shell.content)
+          else
+            @ui.out {
+              @ui.say(shell.content)
+            }
+          end
         end
 
-        def execute_shell(shell)
-          display_shell(shell) unless mode == :silent
+        def execute_shell(shell, &block)
+          display_shell(shell) unless (mode == :silent) || ! echo?
 
-          if approved?
-            @ui.out {
-              @ui.newline
-              result = shell.execute(@ui, @env, &default(:procs)[mode])
-              @ui.newline
+          @ui.out {
+            if approved?
+              if block_given?
+                result = shell.execute(@ui, @env, &block)
+              else
+                @ui.newline
+                result = shell.execute(@ui, @env, &default(:procs)[mode])
+                @ui.newline
+              end
 
               # TODO: raise instead of exit.
               exit 1 unless result.success?
-            }
-          else
-            @ui.err {
-              @ui.newline
-              @ui.say('> (skipped)')
-            }
-          end
+            else
+              if block_given?
+                block.call('> (skipped)')
+              else
+                @ui.newline
+                @ui.say('> (skipped)')
+              end
+            end
+          }
         end
 
         def silent_shell(shell)
@@ -199,12 +178,16 @@ module WIP
           # end
         end
 
-        def interactive?
-          options.interactive
+        def echo?
+          !! options.echo
         end
 
         def format
           options.format
+        end
+
+        def interactive?
+          options.interactive
         end
 
         def mode

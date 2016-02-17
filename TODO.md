@@ -32,6 +32,14 @@ bosh-tools fly exec path/to/pipeline.yml:job-name -j pipeline-name/job-name -i b
     -t production
   ```
 - rename config to prompt in Tasks ???
+- inlined task ???
+  ``` ruby
+  runner.run(arguments, options, %(
+    #! script
+
+    echo $VARIABLE
+  ))
+  ```
 
 ## old ???
 

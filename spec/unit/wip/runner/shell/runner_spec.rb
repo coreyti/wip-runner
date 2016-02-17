@@ -25,164 +25,220 @@ module WIP::Runner
       ENV.delete('VARIABLE')
     end
 
-    context 'when executed with default options' do
-      let(:task) { Shell::Task.new(nil) { |arguments, options| } }
+    describe '#run' do
+      context 'called with default options' do
+        let(:task) { Shell::Task.new(nil) { |arguments, options| } }
 
-      it 'defaults to mode: "execute"' do
-        execute
-        expect(runner.options.mode)
-          .to eq(:execute)
+        it 'defaults to mode: "execute"' do
+          execute
+          expect(runner.options.mode)
+            .to eq(:execute)
+        end
+
+        it 'defaults to interactive' do
+          execute
+          expect(runner.options.interactive)
+            .to eq(true)
+        end
+
+        it 'defaults to format: "text"' do
+          execute
+          expect(runner.options.format)
+            .to eq(:text)
+        end
       end
 
-      it 'defaults to interactive' do
-        execute
-        expect(runner.options.interactive)
-          .to eq(true)
+      context 'called with mode: "execute"' do
+        let(:options) { Options.new({ :mode => :execute, :interactive => true })}
+
+        before do
+          simulate(
+            "- VARIABLE: " => 'value from user'
+          )
+        end
+
+        it 'writes prompts to STDERR' do
+          expect { execution }.to show %(
+            - VARIABLE: |value from ENV|
+          ), :to => :err
+        end
+
+        it 'writes content and results to STDOUT' do
+          expect { execution }.to show %(
+            echo $VARIABLE
+
+            > value from user
+          ), :to => :out
+        end
       end
 
-      it 'defaults to format: "text"' do
-        execute
-        expect(runner.options.format)
-          .to eq(:text)
+      context 'called with mode: "execute + non-interactive"' do
+        let(:options) { Options.new({ :mode => :execute, :interactive => false })}
+
+        it 'does not write prompts to STDERR' do
+          expect { execution }.to_not output.to_stderr
+        end
+
+        it 'writes content and results to STDOUT' do
+          expect { execution }.to show %(
+            echo $VARIABLE
+
+            > value from ENV
+          ), :to => :out
+        end
+      end
+
+      context 'called with mode: "display"' do
+        let(:options) { Options.new({ :mode => :display, :interactive => true })}
+
+        before do
+          simulate(
+            "- VARIABLE: " => 'value from user'
+          )
+        end
+
+        it 'writes prompts to STDERR' do
+          expect { execution }.to show %(
+            - VARIABLE: |value from ENV|
+          ), :to => :err
+        end
+
+        it 'writes content to STDOUT (without execution)' do
+          expect { execution }.to show %(
+            echo $VARIABLE
+          ), :to => :out
+        end
+      end
+
+      context 'called with mode: "display + non-interactive"' do
+        let(:options) { Options.new({ :mode => :display, :interactive => false })}
+
+        it 'does not write prompts to STDERR' do
+          expect { execution }.to_not output.to_stderr
+        end
+
+        it 'writes content to STDOUT (without execution)' do
+          expect { execution }.to show %(
+            echo $VARIABLE
+          ), :to => :out
+        end
+      end
+
+      context 'called with mode: "silent"' do
+        let(:options) { Options.new({ :mode => :silent, :interactive => true })}
+
+        before do
+          simulate(
+            "- VARIABLE: " => 'value from user'
+          )
+        end
+
+        it 'writes prompts to STDERR' do
+          expect { execution }.to show %(
+            - VARIABLE: |value from ENV|
+          ), :to => :err
+        end
+
+        it 'does not write to STDOUT' do
+          expect { execution }.to_not show 'value', :to => :out, :match => :partial
+        end
+      end
+
+      context 'called with mode: "display + non-interactive"' do
+        let(:options) { Options.new({ :mode => :display, :interactive => false })}
+
+        it 'does not write prompts to STDERR' do
+          expect { execution }.to_not output.to_stderr
+        end
+
+        it 'does not write to STDOUT' do
+          expect { execution }.to_not output.to_stdout
+        end
+      end
+
+      context 'called with format: markdown' do
+        it 'is PENDING'
+      end
+
+      context 'called with format: x' do
+        it 'is PENDING'
+      end
+
+      context 'called with @env' do
+        let(:env) { { 'VARIABLE' => 'value from @env' } }
+
+        before do
+          simulate(
+            "- VARIABLE: " => nil
+          )
+        end
+
+        it 'sets config defaults from @env' do
+          expect { execution }.to show %(
+            - VARIABLE: |value from @env|
+
+            echo $VARIABLE
+
+            > value from @env
+          )
+        end
+      end
+
+      context 'called with a block' do
+        let(:task) do
+          Shell::Task.new(nil) do |arguments, options|
+            shell :script, %{
+              echo content
+            }
+          end
+        end
+
+        it 'yields content to the block' do
+          buffer = StringIO.new
+          options.echo = false
+
+          expect {
+            runner.run(task, arguments, options) do |line|
+              buffer.puts line
+            end
+          }.to_not show('content', :match => :partial)
+          expect(buffer.string.strip).to eq('content')
+        end
+      end
+
+      context 'called multiple times' do
+        let(:task1) do
+          Shell::Task.new(nil) do |arguments, options|
+            config :VARIABLE
+          end
+        end
+        let(:task2) do
+          Shell::Task.new(nil) do |arguments, options|
+            shell :script, %{
+              echo $VARIABLE
+            }
+          end
+        end
+
+        before do
+          simulate(
+            "- VARIABLE: " => 'value from user'
+          )
+        end
+
+        it 'propagates config settings' do
+          simulate { runner.run([task1], arguments, options) }
+          expect   { runner.run([task2], arguments, options) }
+            .to show %(
+              echo $VARIABLE
+
+              > value from user
+            )
+        end
       end
     end
 
-    context 'when executed with mode: "execute"' do
-      let(:options) { Options.new({ :mode => :execute, :interactive => true })}
-
-      before do
-        simulate(
-          "- VARIABLE: " => 'value from user'
-        )
-      end
-
-      it 'writes prompts to STDERR' do
-        expect { execution }.to show %(
-          - VARIABLE: |value from ENV|
-        ), :to => :err
-      end
-
-      it 'writes content and results to STDOUT' do
-        expect { execution }.to show %(
-          echo $VARIABLE
-
-          > value from user
-        ), :to => :out
-      end
-    end
-
-    context 'when executed with mode: "execute + non-interactive"' do
-      let(:options) { Options.new({ :mode => :execute, :interactive => false })}
-
-      it 'does not write prompts to STDERR' do
-        expect { execution }.to_not output.to_stderr
-      end
-
-      it 'writes content and results to STDOUT' do
-        expect { execution }.to show %(
-          echo $VARIABLE
-
-          > value from ENV
-        ), :to => :out
-      end
-    end
-
-    context 'when executed with mode: "display"' do
-      let(:options) { Options.new({ :mode => :display, :interactive => true })}
-
-      before do
-        simulate(
-          "- VARIABLE: " => 'value from user'
-        )
-      end
-
-      it 'writes prompts to STDERR' do
-        expect { execution }.to show %(
-          - VARIABLE: |value from ENV|
-        ), :to => :err
-      end
-
-      it 'writes content to STDOUT (without execution)' do
-        expect { execution }.to show %(
-          echo $VARIABLE
-        ), :to => :out
-      end
-    end
-
-    context 'when executed with mode: "display + non-interactive"' do
-      let(:options) { Options.new({ :mode => :display, :interactive => false })}
-
-      it 'does not write prompts to STDERR' do
-        expect { execution }.to_not output.to_stderr
-      end
-
-      it 'writes content to STDOUT (without execution)' do
-        expect { execution }.to show %(
-          echo $VARIABLE
-        ), :to => :out
-      end
-    end
-
-    context 'when executed with mode: "silent"' do
-      let(:options) { Options.new({ :mode => :silent, :interactive => true })}
-
-      before do
-        simulate(
-          "- VARIABLE: " => 'value from user'
-        )
-      end
-
-      it 'writes prompts to STDERR' do
-        expect { execution }.to show %(
-          - VARIABLE: |value from ENV|
-        ), :to => :err
-      end
-
-      it 'does not write to STDOUT' do
-        expect { execution }.to_not show 'value', :to => :out, :match => :partial
-      end
-    end
-
-    context 'when executed with mode: "display + non-interactive"' do
-      let(:options) { Options.new({ :mode => :display, :interactive => false })}
-
-      it 'does not write prompts to STDERR' do
-        expect { execution }.to_not output.to_stderr
-      end
-
-      it 'does not write to STDOUT' do
-        expect { execution }.to_not output.to_stdout
-      end
-    end
-
-    context 'when executed with format: markdown' do
-      it 'is PENDING'
-    end
-
-    context 'when executed with format: x' do
-      it 'is PENDING'
-    end
-
-    context 'when executed with @env' do
-      let(:env) { { 'VARIABLE' => 'value from @env' } }
-
-      before do
-        simulate(
-          "- VARIABLE: " => nil
-        )
-      end
-
-      it 'sets config defaults from @env' do
-        expect { execution }.to show %(
-          - VARIABLE: |value from @env|
-
-          echo $VARIABLE
-
-          > value from @env
-        )
-      end
-    end
-
+    # NOTE: this is more about Task definition
     context 'when executed with config :default' do
       let(:env) { { 'VARIABLE' => 'value from @env' } }
       let(:task) do
@@ -237,37 +293,6 @@ module WIP::Runner
 
           > value from @env
         )
-      end
-    end
-
-    context 'when used for multiple executions' do
-      let(:task1) do
-        Shell::Task.new(nil) do |arguments, options|
-          config :VARIABLE
-        end
-      end
-      let(:task2) do
-        Shell::Task.new(nil) do |arguments, options|
-          shell :script, %{
-            echo $VARIABLE
-          }
-        end
-      end
-
-      before do
-        simulate(
-          "- VARIABLE: " => 'value from user'
-        )
-      end
-
-      it 'propagates config settings' do
-        simulate { runner.run([task1], arguments, options) }
-        expect   { runner.run([task2], arguments, options) }
-          .to show %(
-            echo $VARIABLE
-
-            > value from user
-          )
       end
     end
   end
