@@ -28,7 +28,12 @@ module WIP
 
           @args = WIP::Runner::Options.new.tap do |opts|
             arguments.keys.each_with_index do |key, index|
-              opts[key] = remaining[index]
+              if arguments[key].multiple
+                opts[key] = remaining[index..-1]
+                break
+              else
+                opts[key] = remaining[index]
+              end
             end
           end
 
@@ -96,6 +101,7 @@ module WIP
           pairs.each do |name, definition|
             padding   = ' ' * (parser.summary_width - name.length + 1)
             overview  = definition[:overview]
+            overview << ' [multiple]' if definition[:multiple]
             parser.separator [parser.summary_indent, name, padding, overview].join('')
           end
         end
