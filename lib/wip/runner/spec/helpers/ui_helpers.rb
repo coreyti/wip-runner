@@ -7,8 +7,8 @@ module WIP
 
       def simulate(pairs = nil)
         unless pairs.nil?
-          @simulated = pairs.inject(@simulated || {}) do |memo, (q, a)|
-            memo[q] = a ; memo
+          @simulated = pairs.inject(@simulated || []) do |memo, pair|
+            memo << pair ; memo
           end
         end
 
@@ -18,10 +18,12 @@ module WIP
 
           begin
             if @simulated
-              simulator = Simulator.new(@simulated.values, (@simulated.keys == ['*']))
+              keys      = @simulated.map { |pair| pair[0] }
+              values    = @simulated.map { |pair| pair[1] }
+              simulator = Simulator.new(values, (@simulated[0][0] == '*'))
               highline.instance_variable_set(:@input, simulator)
 
-              @simulated.keys.each do |question|
+              keys.each do |question|
                 # NOTE: the "|default|" is stripped because that is added
                 # later by the Question instance, in time for a call to #say.
                 if question.is_a?(Array)

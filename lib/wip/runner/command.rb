@@ -82,7 +82,7 @@ module WIP
       def validate!(arguments)
         unless parser.arguments.empty? || parser.config.no_validate
           missing = parser.arguments.keys.inject({}) do |memo, key|
-            memo[key] = nil if arguments[key].nil?
+            memo[key] = nil if arguments[key].nil? || arguments[key].empty?
             memo
           end
           raise InvalidArguments, missing unless missing.empty?

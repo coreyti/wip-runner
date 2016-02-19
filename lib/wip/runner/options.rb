@@ -3,6 +3,10 @@ require 'ostruct'
 module WIP
   module Runner
     class Options < OpenStruct
+      def to_hash
+        self.to_h
+      end
+
       def each(&block)
         self.to_h.each(&block)
       end
