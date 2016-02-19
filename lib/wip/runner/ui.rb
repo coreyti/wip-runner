@@ -32,6 +32,20 @@ module WIP
         end
       end
 
+      def indent(*args, &block)
+        increase = args.shift || 1
+        @out.indent_level += increase
+        @err.indent_level += increase
+        @output.indent(0, *args, &block)
+        @out.indent_level -= increase
+        @err.indent_level -= increase
+      end
+
+      def indent_level=(level)
+        @out.indent_level = level
+        @err.indent_level = level
+      end
+
       protected
 
       def method_missing(method_name, *args, &block)

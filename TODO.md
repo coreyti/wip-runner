@@ -7,6 +7,8 @@ bosh-tools fly exec path/to/task.yml
 bosh-tools fly exec path/to/task.yml path/to/another-task.yml
 bosh-tools fly exec path/to/pipeline.yml:job-name -t task-1 -t task-2
 bosh-tools fly exec path/to/pipeline.yml:job-name -j pipeline-name/job-name -i bosh-src=..
+
+bosh-tools fly exec path/to/task.yml -l secrets.yml # will answer params with the contents
 ```
 
 # TODO
