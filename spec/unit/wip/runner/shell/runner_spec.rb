@@ -267,6 +267,39 @@ module WIP::Runner
       end
     end
 
+    context 'given nested tasks, with headings' do
+      let(:task) do
+        Shell::Task.new(nil) do |arguments, options|
+          task('Config heading') do
+            config :VARIABLE, :default => 'value from default'
+          end
+
+          task('Script heading') do
+            shell :script, %{
+              echo $VARIABLE
+            }
+          end
+        end
+      end
+
+      before do
+        simulate(
+          "- VARIABLE: " => 'value from user'
+        )
+      end
+
+      it 'writes the headings to STDERR' do
+        expect { execution }.to show %(
+          Config heading
+
+          - VARIABLE: |value from default|
+
+
+          Script heading
+        ), :to => :err
+      end
+    end
+
     # pending 'UI Simulator handling of password/echo(false)'
     xcontext 'when executed with config :password mode' do
       let(:env) { { 'VARIABLE' => 'value from @env' } }

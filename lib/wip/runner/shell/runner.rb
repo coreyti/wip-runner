@@ -55,21 +55,21 @@ module WIP
         def evaluate(task, &block)
           task.build(arguments, options)
 
-          if interactive? && ! task.configs.empty?
-            task.configs.each do |term, options, b|
-              evaluate_config(term, options, &b)
+          section(task.heading) do
+            if interactive? && ! task.configs.empty?
+              task.configs.each do |term, options, b|
+                evaluate_config(term, options, &b)
+              end
+              @ui.err { @ui.newline }
             end
-            @ui.err { @ui.newline }
-          end
 
-          task.shells.each do |shell|
-            section("Shell #{shell.type.downcase}") do
+            task.shells.each do |shell|
               send(:"#{mode}_shell", shell, &block)
             end
-          end
 
-          task.steps.each do |step|
-            evaluate(step, &block)
+            task.steps.each do |step|
+              evaluate(step, &block)
+            end
           end
         end
 
@@ -154,16 +154,17 @@ module WIP
         def section(heading, &block)
           if format == :markdown
             @ui.out {
-              @ui.say("- [ ] #{heading}...")
+              @ui.say("- [ ] #{heading}")
               @ui.indent(&block)
             }
           else
             @ui.err {
-              # @ui.indent do
-              # @ui.say("#{heading}...")
+              if heading
+                @ui.say(heading)
+                @ui.newline
+              end
               yield
               @ui.newline
-              # end
             }
           end
         end
