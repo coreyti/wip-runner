@@ -18,9 +18,9 @@ module WIP
 
       def command_parser(params)
         command    = params.command
-        return CLI::Parser.new(@io) if command.nil?
+        return CLI::Parser.new(@ui) if command.nil?
 
-        Commands.locate(command).new(@io).parser
+        Commands.locate(command).new(@ui).parser
       end
     end
   end

@@ -10,8 +10,13 @@ module WIP
             instance_exec(&block) if block_given?
           end
 
-          def description
-            raise NotImplementedError
+          def content(format = :text)
+            case format
+            when :markdown
+              "```\n#{@content}\n```"
+            else
+              @content
+            end
           end
 
           def execute(io, env, &block)

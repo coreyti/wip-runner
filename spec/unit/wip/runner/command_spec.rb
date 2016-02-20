@@ -16,7 +16,7 @@ module WIP::Runner
 
             Options:
                 -h, --help                       Prints help messages
-          )
+          ), :to => :err
           expect(command).to_not be_executed
         end
       end
@@ -46,7 +46,7 @@ module WIP::Runner
               Options:
                   -f, --flag                       Option 1
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
             expect(command).to_not be_executed
           end
         end
@@ -73,7 +73,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
             expect(command).to_not be_executed
           end
         end
@@ -89,7 +89,44 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
+            expect(command).to_not be_executed
+          end
+        end
+      end
+
+      context 'when the Command defines arguments as variable length' do
+        let(:command) {
+          define_command do
+            argument :arg1, { overview: 'Argument 1' }
+            argument :argv, { overview: 'Argument(s)', multiple: true }
+
+            def execute(args, options)
+              @executed = args.arg1 == '1' && args.argv == ['A', 'B']
+            end
+
+            def executed?
+              !! @executed
+            end
+          end.new(ui)
+        }
+
+        it 'executes' do
+          expect { command.run(['1', 'A', 'B']) }.to change { command.executed? }
+        end
+
+        context 'given options as "--help"' do
+          it 'prints help' do
+            expect { command.run(['--help']) }.to show %(
+              Usage: wip-runner command <arguments> [options]
+
+              Arguments:
+                  arg1                             Argument 1
+                  argv                             Argument(s) [multiple]
+
+              Options:
+                  -h, --help                       Prints help messages
+            ), :to => :err
             expect(command).to_not be_executed
           end
         end
@@ -109,7 +146,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
           end
         end
 
@@ -122,7 +159,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
           end
         end
 
@@ -138,7 +175,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
           end
         end
 
@@ -154,7 +191,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
           end
         end
       end

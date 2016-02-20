@@ -45,9 +45,9 @@ module WIP
 
       attr_reader :parser # TODO(?)... :arguments, :options
 
-      def initialize(io)
-        @io     = io
-        @parser = WIP::Runner::Parser.new(@io, self.class)
+      def initialize(ui)
+        @ui     = ui
+        @parser = WIP::Runner::Parser.new(@ui, self.class)
       end
 
       def run(argv = [])
@@ -82,7 +82,7 @@ module WIP
       def validate!(arguments)
         unless parser.arguments.empty? || parser.config.no_validate
           missing = parser.arguments.keys.inject({}) do |memo, key|
-            memo[key] = nil if arguments[key].nil?
+            memo[key] = nil if arguments[key].nil? || arguments[key].empty?
             memo
           end
           raise InvalidArguments, missing unless missing.empty?
@@ -92,13 +92,15 @@ module WIP
       private
 
       def delegate(command, argv)
-        target = Commands.locate(command, self.class).new(@io)
+        target = Commands.locate(command, self.class).new(@ui)
         target.run(argv)
       end
 
       def print_error(e)
-        @io.say(e.message)
-        @io.newline
+        @ui.err {
+          @ui.say(e.message)
+          @ui.newline
+        }
         parser.help
       end
     end

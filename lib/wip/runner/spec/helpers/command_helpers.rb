@@ -13,7 +13,7 @@ module WIP
       end
 
       def example_command(implementation)
-        ExampleCommands.const_get(implementation).new(io)
+        ExampleCommands.const_get(implementation).new(ui)
       end
 
       module ExampleCommands
@@ -56,7 +56,9 @@ module WIP
 
           def execute(args, options)
             super
-            @io.say 'running nested command...'
+            @ui.out {
+              @ui.say('running nested command...')
+            }
           end
         end
       end

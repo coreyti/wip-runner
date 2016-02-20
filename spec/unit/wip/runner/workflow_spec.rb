@@ -6,7 +6,7 @@ module WIP::Runner
     end
 
     describe '#execute' do
-      let(:command) { command_class.new(io) }
+      let(:command) { command_class.new(ui) }
 
       context 'given an empty definition' do
         let(:command_class) {
@@ -139,7 +139,7 @@ module WIP::Runner
                 echo $e is: ${!e}
               done
               ```
-                ⫶ HOME is: /Users/corey
+                ⫶ HOME is: #{ENV['HOME']}
                 ⫶ OPTIONAL is:
                 ⫶ DEFAULT1 is: default value 1
                 ⫶ DEFAULT2 is: user input

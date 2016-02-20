@@ -1,17 +1,19 @@
 module WIP
   module Runner::Spec
     module Helpers::Matchers
+      # TODO: fix the following message:
+      # expected block to not STDCOMBINED to receive the following content (partial match):, but output "- VARIABLE:  |value from ENV|\n\necho $VARIABLE\n\n> value from user"
       def show(expected, options = {})
-        output = options[:output] || :highline
-        match  = options[:match]  || :full # :match => [:full | :partial]
-        ShowMatcher.new(self, strip_heredoc(expected).strip, output, match).send(:"to_#{output}")
+        stream = options[:to]    || :combined # :to    => [:out | :err]
+        match  = options[:match] || :full     # :match => [:full | :partial]
+        ShowMatcher.new(self, strip_heredoc(expected).strip, stream, match)
       end
 
       class ShowMatcher < RSpec::Matchers::BuiltIn::Output
-        def initialize(example, expected, output, match)
+        def initialize(example, expected, stream, match)
           super(expected)
           @example = example
-          @output  = output
+          @stream  = stream
           @match   = match
         end
 
@@ -20,13 +22,8 @@ module WIP
           return false unless Proc === block
 
           @expected = @expected.strip
-
-          if @output == :highline
-            @actual = @stream_capturer.capture(@example.io, block)
-            @actual = @example.strip_heredoc(@actual).strip
-          else
-            @actual = @stream_capturer.capture(block).strip
-          end
+          @actual = Capturer.capture(@example.ui, @stream, block)
+          @actual = @example.strip_heredoc(@actual).strip
 
           if @match == :partial
             values_match?(/#{Regexp.escape(@expected)}/, @actual)
@@ -36,7 +33,7 @@ module WIP
         end
 
         def description
-          "#{@stream_capturer.name} to receive the following content (#{@match} match):"
+          "STD#{@stream.upcase} to receive the following content (#{@match} match):"
         end
 
         def failure_message
@@ -49,28 +46,33 @@ module WIP
           ].join("\n\n")
         end
 
-        def to_highline
-          @stream_capturer = CaptureHighline
-          self
-        end
-
         # @private
-        module CaptureHighline
-          def self.name
-            'highline'
-          end
+        module Capturer
+          def self.capture(ui, stream, block)
+            captured = StringIO.new
 
-          def self.capture(io, block)
-            captured_stream = StringIO.new
+            mappings = {}.tap do |h|
+              if stream == :combined
+                out = ui.send(:out)
+                err = ui.send(:err)
+                h[out] = out.instance_variable_get(:'@output')
+                h[err] = err.instance_variable_get(:'@output')
+              else
+                io = ui.send(stream)
+                h[io] = io.instance_variable_get(:'@output')
+              end
+            end
 
-            original_stream = io.instance_variable_get(:'@output')
-            io.instance_variable_set(:'@output', captured_stream)
+            mappings.each do |io, original|
+              io.instance_variable_set(:'@output', captured)
+            end
 
             block.call
-
-            captured_stream.string
+            captured.string
           ensure
-            io.instance_variable_set(:'@output', captured_stream)
+            mappings.each do |io, original|
+              io.instance_variable_set(:'@output', original)
+            end
           end
         end
       end

@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module WIP::Runner
   describe CLI::Help do
-    subject(:command) { CLI::Help.new(io) }
+    subject(:command) { CLI::Help.new(ui) }
 
     describe '#run' do
       let(:help) do
@@ -20,7 +20,8 @@ module WIP::Runner
 
       context 'given nil/empty arguments' do
         it 'prints help' do
-          expect { command.run }.to show help
+          expect { command.run }.to show help,
+            :to => :err
         end
       end
 
@@ -32,7 +33,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
-            )
+            ), :to => :err
           end
         end
 
@@ -42,7 +43,7 @@ module WIP::Runner
               Invalid command: bogus
 
               Usage: wip-runner help <arguments> [options]
-            ), :match => :partial
+            ), :to => :err, :match => :partial
           end
         end
       end
