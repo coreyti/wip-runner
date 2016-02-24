@@ -40,6 +40,7 @@ module WIP
           def simplex!(ui, env, &block)
             Open3.popen2e(env, "#{executable} #{arguments}") do |stdin, stdoe, thread|
               while line = stdoe.gets
+                @output.puts(line)
                 block.call(line)
               end
 
@@ -59,6 +60,7 @@ module WIP
               end
 
               while line = stdoe.gets
+                @output.puts(line)
                 block.call(line)
               end
 

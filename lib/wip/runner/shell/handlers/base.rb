@@ -7,6 +7,7 @@ module WIP
         class Base
           def initialize(content, &block)
             @content = clean(content)
+            @output  = StringIO.new
             instance_exec(&block) if block_given?
           end
 
@@ -21,6 +22,10 @@ module WIP
 
           def execute(io, env, &block)
             raise NotImplementedError
+          end
+
+          def output
+            @output.string
           end
 
           def type

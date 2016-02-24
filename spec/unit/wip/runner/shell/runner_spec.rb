@@ -236,6 +236,26 @@ module WIP::Runner
             )
         end
       end
+
+      context 'when executed with a failing `shell :script`' do
+        let(:task) do
+          Shell::Task.new(nil) do |arguments, options|
+            shell :script, %{
+              echo 'this will fail...'
+              exit 42
+            }
+          end
+        end
+
+        it 'writes results to STDERR' do
+          expect { execution }.to raise_error(SystemExit)
+          .and show %(
+            Failure (exit code 42)
+
+            this will fail...
+          ), :to => :err
+        end
+      end
     end
 
     # NOTE: this is more about Task definition

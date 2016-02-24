@@ -118,8 +118,18 @@ module WIP
                 @ui.newline
               end
 
-              # TODO: raise instead of exit.
-              exit 1 unless result.success?
+              unless result.success?
+                @ui.err {
+                  @ui.newline
+                  @ui.say "Failure (exit code #{result.exitstatus})"
+                  output = shell.output
+                  unless output.empty?
+                    @ui.newline
+                    @ui.say output
+                  end
+                }
+                exit result.exitstatus
+              end
             else
               if block_given?
                 block.call('> (skipped)')
