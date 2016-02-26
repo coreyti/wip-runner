@@ -1,12 +1,8 @@
-module Documentation
-  module Support
-    def write(expected, options = {})
-      WriteMatcher.new(expected, options[:to] || :stdout)
-    end
-
+module WIP::Runner::Spec
+  module Matchers
     class WriteMatcher < RSpec::Matchers::BuiltIn::Output
       include RSpec::Matchers::BuiltIn
-      include Documentation::Support::Helpers
+      include WIP::Runner::Spec::Helpers::StringHelpers
 
       def initialize(expected, stream)
         super(strip_heredoc(expected).strip)

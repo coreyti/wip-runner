@@ -1,3 +1,5 @@
+require 'wip/runner'
+
 module WIP
   module Runner
     module Spec
