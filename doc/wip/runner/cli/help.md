@@ -1,6 +1,6 @@
 # Documentation for `wip-runner help`
 
-## When executed as `wip-runner help`
+## Executed as `wip-runner help`
 
 It writes *overall* help text for `wip-runner`, to `stderr`.
 
@@ -18,7 +18,7 @@ expect { `wip-runner help` }
   ), :to => :stderr
 ```
 
-## When executed as `wip-runner help <command>`, given a valid command
+## Executed as `wip-runner help <command>`, given a valid command
 
 It writes *command* help text, to `stderr`.
 
@@ -32,7 +32,7 @@ expect { `wip-runner help version` }
   ), :to => :stderr
 ```
 
-## When executed as `wip-runner help <command>`, given a bogus command
+## Executed as `wip-runner help <command>`, given a bogus command
 
 It writes *general* help text, to `stderr`.
 
