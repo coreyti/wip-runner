@@ -14,6 +14,7 @@ namespace :spec do
     require 'specdown'
     STDOUT.sync = true
     Specdown::Config.root = File.expand_path('../doc', __FILE__)
-    Specdown::Command.new.execute
+    # Specdown::Command.new.execute
+    Specdown::Command.new.execute_with_hooks
   end
 end

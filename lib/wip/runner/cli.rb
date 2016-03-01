@@ -79,7 +79,7 @@ module WIP
         end
 
         def help
-          @ui.err {
+          @ui.out {
             @ui.say(options.help)
           }
         end

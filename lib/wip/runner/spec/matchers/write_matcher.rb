@@ -21,9 +21,9 @@ module WIP::Runner::Spec
 
       def capture(block)
         capturer = if @stream == :stderr
-          CaptureStreamToTempfile.new("stderr", $stderr)
+          Capturer.new("stderr", $stderr)
         else
-          CaptureStreamToTempfile.new("stdout", $stdout)
+          Capturer.new("stdout", $stdout)
         end
 
         strip_heredoc(capturer.capture(block)).strip
@@ -41,6 +41,16 @@ module WIP::Runner::Spec
           "Actual:",
           "#{@actual}\n\n"
         ].join("\n\n")
+      end
+
+      class Capturer < CaptureStreamToTempfile
+        def capture(block)
+          if name == 'stdout'
+            block.call
+          else
+            super
+          end
+        end
       end
     end
   end
