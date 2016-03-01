@@ -1,3 +1,33 @@
+# Scratch
+
+```bash
+# generate a bosh-init manifest, with placeholders for all secrets
+bosh-tools generate aws bosh-init
+
+# generate a bosh-init manifest, with secrets from a local store
+bosh-tools generate aws bosh-init -d ./path/to/secrets.yml
+bosh-tools generate aws bosh-init -d ./path/to/secrets.yml:machine-name
+
+# generate a bosh-init manifest, with secrets from a command output
+bosh-tools generate aws bosh-init -d <(lpass show --notes 'team secrets')
+bosh-tools generate aws bosh-init -d <(lpass show --notes 'team secrets'):machine-name
+
+# generate a bosh-init manifest, with a merged partial
+bosh-tools generate aws bosh-init -d ./path/to/secrets.yml -p ./special-network.yml
+```
+
+```bash
+# output (only) the task params, as exports.
+bosh-tools fly exec ./pipeline.yml:job-name --exports > env.sh
+
+# ...next: output the script, without variable settings
+bosh-tools fly exec ./pipeline.yml:job-name --non-interactive > script.sh
+
+# ...then:
+source env.sh ; ./script.sh
+```
+
+---
 
 - rename Parser as OptionParser (see specdown)
 
