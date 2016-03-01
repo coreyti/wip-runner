@@ -15,7 +15,7 @@ expect { `wip-runner help` }
 
     Options:
         -h, --help                       Prints help messages
-  ), :to => :stdout
+  ), :to => :stderr
 ```
 
 ## Executed as `wip-runner help <command>`, given a valid command
@@ -29,7 +29,7 @@ expect { `wip-runner help version` }
 
     Options:
         -h, --help                       Prints help messages
-  ), :to => :stdout
+  ), :to => :stderr
 ```
 
 ## Executed as `wip-runner help <command>`, given a bogus command
@@ -48,5 +48,5 @@ expect { `wip-runner help bogus` }
 
     Options:
         -h, --help                       Prints help messages
-  ), :to => :stdout
+  ), :to => :stderr
 ```
