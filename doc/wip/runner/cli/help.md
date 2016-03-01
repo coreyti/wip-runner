@@ -2,7 +2,7 @@
 
 ## Executed as `wip-runner help`
 
-It writes *overall* help text for `wip-runner`, to `stdout`.
+It writes *overall* help text for `wip-runner`, to `stderr`.
 
 ```ruby
 expect { `wip-runner help` }
@@ -20,7 +20,7 @@ expect { `wip-runner help` }
 
 ## Executed as `wip-runner help <command>`, given a valid command
 
-It writes *command* help text, to `stdout`.
+It writes *command* help text, to `stderr`.
 
 ```ruby
 expect { `wip-runner help version` }
@@ -34,7 +34,7 @@ expect { `wip-runner help version` }
 
 ## Executed as `wip-runner help <command>`, given a bogus command
 
-It writes *general* help text, to `stdout`.
+It writes *general* help text, to `stderr`.
 
 ```ruby
 expect { `wip-runner help bogus` }
