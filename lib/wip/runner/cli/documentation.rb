@@ -5,7 +5,16 @@ module WIP
       argument :argv, { overview: 'Command', multiple: true }
 
       def execute(arguments, config)
-        raise command_parser(arguments).inspect
+        docs = File.expand_path('../../../../../doc/wip/runner/cli', __FILE__)
+        path = "#{File.join(docs, arguments.argv.join('/'))}.md"
+        spec = File.read(path)
+        command_parser(arguments.argv).help
+        @ui.err {
+          @ui.newline
+          @ui.say '---'
+          @ui.newline
+          @ui.say spec
+        }
       rescue InvalidCommand => e
         print_error(e)
 
@@ -16,9 +25,9 @@ module WIP
 
       private
 
-      def command_parser(arguments)
+      def command_parser(argv)
+        command = argv.map(&:capitalize).join('::')
         return CLI::Parser.new(@ui) if command.empty?
-        command = arguments.argv.map(&:capitalize).join('::')
 
         Commands.locate(command).new(@ui).parser
       end

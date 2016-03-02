@@ -11,6 +11,8 @@ module WIP
             return ns.const_get(command) if ns && ns.const_defined?(command)
           end
           raise InvalidCommand, name
+        rescue
+          raise InvalidCommand, name
         end
 
         def within(namespace)
