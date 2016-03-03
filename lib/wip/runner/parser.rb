@@ -34,12 +34,6 @@ module WIP
         end
       end
 
-      def help
-        @ui.err {
-          @ui.say(options.help)
-        }
-      end
-
       def options
         @options ||= OptionParser.new do |parser|
           @config.help        = false
@@ -60,7 +54,28 @@ module WIP
           parser.on_tail '-h', '--help', 'Prints help messages' do
             @config.help = true
           end
+
+          parser.on_tail '--specification', 'Prints detailed command specification' do
+            @config.spec = true
+          end
         end
+      end
+
+      def help
+        @ui.err {
+          @ui.say(options.help)
+        }
+      end
+
+      def spec
+        help
+
+        @ui.err {
+          @ui.newline
+          @ui.say '---'
+          @ui.newline
+          @ui.say Command::Specification.new(@command).read
+        }
       end
 
       def arguments

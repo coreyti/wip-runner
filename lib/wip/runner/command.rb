@@ -1,3 +1,5 @@
+require 'wip/runner/command/specification'
+
 module WIP
   module Runner
     class Command
@@ -56,6 +58,11 @@ module WIP
             if command.nil?
               if options.help
                 parser.help
+                return
+              end
+
+              if options.spec
+                parser.spec
                 return
               end
 

@@ -119,6 +119,10 @@ module WIP
                 @ui.say(parser)
               }
             end
+
+            parser.on_tail '--specification', 'Prints detailed command specification' do
+              # NO-OP... actually handled by the other parser.
+            end
           end
         end
 

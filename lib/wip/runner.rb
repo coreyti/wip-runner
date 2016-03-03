@@ -7,7 +7,6 @@ require 'wip/runner/ui'
 
 require 'wip/runner/cli'
 require 'wip/runner/cli/help'
-require 'wip/runner/cli/documentation'
 require 'wip/runner/cli/version'
 
 require 'wip/runner/shell'
