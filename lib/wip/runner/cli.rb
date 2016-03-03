@@ -36,6 +36,14 @@ module WIP
           end
           @assets
         end
+
+        def docs
+          @docs ||= begin
+            spec = Gem::Specification.find_by_name(signature)
+            root = spec.gem_dir
+            docs = File.join(root, 'doc')
+          end
+        end
       end
 
       def initialize(ui = UI.new)

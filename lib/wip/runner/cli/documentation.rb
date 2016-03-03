@@ -4,32 +4,36 @@ module WIP
       overview 'Prints detailed command documentation'
       argument :argv, { overview: 'Command', multiple: true }
 
-      def execute(arguments, config)
-        docs = File.expand_path('../../../../../doc/wip/runner/cli', __FILE__)
-        path = "#{File.join(docs, arguments.argv.join('/'))}.md"
-        spec = File.read(path)
-        command_parser(arguments.argv).help
+      def execute(arguments, options)
+        @arguments = arguments
+
+        command_parser.help
         @ui.err {
           @ui.newline
           @ui.say '---'
           @ui.newline
-          @ui.say spec
+          @ui.say File.read(command_docs)
         }
       rescue InvalidCommand => e
         print_error(e)
-
-        # @ui.out {
-        #   @ui.say("#{WIP::Runner::CLI.signature} version #{WIP::Runner::CLI.namespace::VERSION}")
-        # }
       end
 
       private
 
-      def command_parser(argv)
-        command = argv.map(&:capitalize).join('::')
-        return CLI::Parser.new(@ui) if command.empty?
+      def command_class
+        @command_class ||= @arguments.argv.map(&:capitalize).join('::')
+      end
 
-        Commands.locate(command).new(@ui).parser
+      def command_docs
+        @command_docs ||= begin
+          path = @arguments.argv.join('/')
+          Dir["#{WIP::Runner::CLI.docs}/**/#{path}.md"].first
+        end
+      end
+
+      def command_parser
+        return CLI::Parser.new(@ui) if command_class.empty?
+        Commands.locate(command_class).new(@ui).parser
       end
     end
   end
