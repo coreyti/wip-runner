@@ -15,6 +15,7 @@ expect { `wip-runner help` }
 
     Options:
         -h, --help                       Prints help messages
+            --specification              Prints detailed specifications
   ), :to => :stderr
 ```
 
@@ -29,6 +30,7 @@ expect { `wip-runner help version` }
 
     Options:
         -h, --help                       Prints help messages
+            --specification              Prints detailed specifications
   ), :to => :stderr
 ```
 
@@ -44,9 +46,10 @@ expect { `wip-runner help bogus` }
     Usage: wip-runner help <arguments> [options]
 
     Arguments:
-        command                          Command name
+        command                          Command
 
     Options:
         -h, --help                       Prints help messages
+            --specification              Prints detailed specifications
   ), :to => :stderr
 ```
