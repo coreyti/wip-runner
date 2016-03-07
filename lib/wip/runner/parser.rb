@@ -55,7 +55,7 @@ module WIP
             @config.help = true
           end
 
-          parser.on_tail '--specification', 'Prints detailed command specification' do
+          parser.on_tail '--specification', 'Prints detailed specifications' do
             @config.spec = true
           end
         end

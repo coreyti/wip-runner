@@ -15,6 +15,7 @@ module WIP::Runner
 
           Options:
               -h, --help                       Prints help messages
+                  --specification              Prints detailed specifications
         )
       end
 
@@ -58,6 +59,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
+                      --specification              Prints detailed specifications
             ), :to => :err
           end
         end

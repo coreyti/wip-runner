@@ -16,6 +16,7 @@ module WIP::Runner
 
             Options:
                 -h, --help                       Prints help messages
+                    --specification              Prints detailed specifications
           ), :to => :err
           expect(command).to_not be_executed
         end
@@ -46,6 +47,7 @@ module WIP::Runner
               Options:
                   -f, --flag                       Option 1
                   -h, --help                       Prints help messages
+                      --specification              Prints detailed specifications
             ), :to => :err
             expect(command).to_not be_executed
           end
@@ -73,6 +75,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
+                      --specification              Prints detailed specifications
             ), :to => :err
             expect(command).to_not be_executed
           end
@@ -89,6 +92,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
+                      --specification              Prints detailed specifications
             ), :to => :err
             expect(command).to_not be_executed
           end
@@ -126,6 +130,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
+                      --specification              Prints detailed specifications
             ), :to => :err
             expect(command).to_not be_executed
           end
@@ -146,6 +151,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
+                      --specification              Prints detailed specifications
             ), :to => :err
           end
         end
@@ -159,6 +165,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
+                      --specification              Prints detailed specifications
             ), :to => :err
           end
         end
@@ -175,6 +182,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
+                      --specification              Prints detailed specifications
             ), :to => :err
           end
         end
@@ -191,6 +199,7 @@ module WIP::Runner
 
               Options:
                   -h, --help                       Prints help messages
+                      --specification              Prints detailed specifications
             ), :to => :err
           end
         end

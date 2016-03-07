@@ -120,7 +120,7 @@ module WIP
               }
             end
 
-            parser.on_tail '--specification', 'Prints detailed command specification' do
+            parser.on_tail '--specification', 'Prints detailed specifications' do
               # NO-OP... actually handled by the other parser.
             end
           end
