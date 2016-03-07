@@ -1,3 +1,5 @@
+require 'rouge'
+
 module WIP
   module Runner
     class Command
@@ -7,7 +9,10 @@ module WIP
         end
 
         def read
-          File.read(command_docs)
+          source    = File.read(command_docs)
+          formatter = Rouge::Formatters::Terminal256.new(:theme => 'wip')
+          lexer     = Rouge::Lexers::Markdown.new
+          formatter.format(lexer.lex(source))
         end
 
         private
@@ -18,8 +23,15 @@ module WIP
 
         def command_path
           @command_path ||= begin
-            [WIP::Runner::CLI.namespace.to_s.split('::').join('/').downcase, @command.signature.split(' ').join('/')].join('/')
+            @command.to_s.split('::').join('/').downcase
           end
+        end
+
+        class Theme < Rouge::Themes::MonokaiSublime
+          name 'wip'
+
+          style Generic::Heading, :fg => :whitish, :bold => true
+          style Generic::Emph,    :fg => :whitish, :bold => true
         end
       end
     end

@@ -1,4 +1,4 @@
-# Documentation for `wip-runner help`
+# Specification: `wip-runner help`
 
 ## Executed as `wip-runner help`
 

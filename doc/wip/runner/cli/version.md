@@ -1,4 +1,4 @@
-# Documentation for `wip-runner version`
+# Specification: `wip-runner version`
 
 ## Executed as `wip-runner version`
 
