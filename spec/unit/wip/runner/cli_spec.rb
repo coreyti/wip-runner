@@ -10,8 +10,8 @@ module WIP::Runner
           Usage: wip-runner <command> [options]
 
           Commands:
-              help                             Prints help messages
               version                          Prints version information
+              help                             Prints help messages
 
           Options:
               -h, --help                       Prints help messages
