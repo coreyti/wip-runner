@@ -10,7 +10,7 @@ module WIP
 
         def read
           source    = File.read(command_docs)
-          formatter = Rouge::Formatters::Terminal256.new(:theme => 'wip')
+          formatter = Rouge::Formatters::Terminal256.new(:theme => Theme)
           lexer     = Rouge::Lexers::Markdown.new
           formatter.format(lexer.lex(source))
         end
